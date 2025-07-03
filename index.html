@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel główny – Wizyty Klientów</title>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
-      max-width: 600px;
+      max-width: 650px;
       margin: auto;
       padding: 1rem;
     }
@@ -21,6 +22,18 @@
       margin-bottom: 0.5rem;
       font-size: 1rem;
     }
+    .chart-wrapper {
+      margin: 1.5rem 0;
+      padding: 1rem;
+      border: 2px solid #1e88e5;
+      border-radius: 10px;
+      background: #f0f7ff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    canvas {
+      width: 100% !important;
+      max-height: 300px;
+    }
   </style>
 </head>
 <body>
@@ -28,15 +41,23 @@
 
   <div id="summary"></div>
 
+  <div class="chart-wrapper">
+    <h3 style="text-align:center; margin-top:0">Struktura płatności – bieżący miesiąc</h3>
+    <canvas id="monthChart"></canvas>
+  </div>
+  <div class="chart-wrapper">
+    <h3 style="text-align:center; margin-top:0">Struktura płatności – bieżący rok</h3>
+    <canvas id="yearChart"></canvas>
+  </div>
+
   <button onclick="location.href='addClient.html'">Dodaj nową wizytę</button>
+  <button onclick="location.href='clients.html'">Zobacz klientów</button>
   <button onclick="logout()">Wyloguj</button>
 
   <script>
-    // Sprawdzenie zalogowania
+    // weryfikacja logowania
     const encryptionKey = sessionStorage.getItem("key");
-    if (!encryptionKey) {
-      location.href = "login.html";
-    }
+    if (!encryptionKey) location.href = "login.html";
 
     function decryptData(ciphertext) {
       try {
@@ -46,6 +67,9 @@
         return null;
       }
     }
+
+    let monthChartInstance = null;
+    let yearChartInstance = null;
 
     function renderSummary() {
       const summaryDiv = document.getElementById("summary");
@@ -77,9 +101,51 @@
 
       summaryDiv.innerHTML = `
         <p><strong>Obsłużonych klientów (zapłaconych):</strong> ${totalServed}</p>
-        <p><strong>Bieżący miesiąc:</strong> Gotówka ${monthCash.toFixed(2)} zł | Karta ${monthCard.toFixed(2)} zł</p>
-        <p><strong>Bieżący rok:</strong> Gotówka ${yearCash.toFixed(2)} zł | Karta ${yearCard.toFixed(2)} zł</p>
+        <p><strong>Bieżący miesiąc:</strong> Gotówka £${monthCash.toFixed(2)} | Karta £${monthCard.toFixed(2)}</p>
+        <p><strong>Bieżący rok:</strong> Gotówka £${yearCash.toFixed(2)} | Karta £${yearCard.toFixed(2)}</p>
       `;
+
+      renderCharts(monthCash, monthCard, yearCash, yearCard);
+    }
+
+    function renderCharts(monthCash, monthCard, yearCash, yearCard) {
+      const monthCtx = document.getElementById("monthChart").getContext("2d");
+      const yearCtx = document.getElementById("yearChart").getContext("2d");
+
+      if (monthChartInstance) monthChartInstance.destroy();
+      if (yearChartInstance) yearChartInstance.destroy();
+
+      monthChartInstance = new Chart(monthCtx, {
+        type: "pie",
+        data: {
+          labels: ["Gotówka", "Karta"],
+          datasets: [{
+            data: [monthCash, monthCard]
+          }]
+        },
+        options: {
+          plugins: {
+            legend: {position: "bottom"},
+            title: {display: false}
+          }
+        }
+      });
+
+      yearChartInstance = new Chart(yearCtx, {
+        type: "pie",
+        data: {
+          labels: ["Gotówka", "Karta"],
+          datasets: [{
+            data: [yearCash, yearCard]
+          }]
+        },
+        options: {
+          plugins: {
+            legend: {position: "bottom"},
+            title: {display: false}
+          }
+        }
+      });
     }
 
     function logout() {

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista klientów</title>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 1rem;
+    }
+    select, button, input {
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin: 1rem 0;
+      width: 100%;
+    }
+    .entry {
+      border: 1px solid #ccc;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    .toggle-paid {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Lista wizyt klientów</h1>
+
+  <input type="text" id="nameFilter" placeholder="Filtruj po imieniu" oninput="loadClients()">
+
+  <select id="filter" onchange="loadClients()">
+    <option value="all">Wszyscy</option>
+    <option value="not_paid">Nie zapłacili</option>
+  </select>
+
+  <div id="clientsList"></div>
+  <button onclick="location.href='index.html'">Wróć do panelu</button>
+
+  <script>
+    const encryptionKey = sessionStorage.getItem("key");
+    if (!encryptionKey) {
+      location.href = "login.html";
+    }
+
+    function encryptData(data) {
+      return CryptoJS.AES.encrypt(JSON.stringify(data), encryptionKey).toString();
+    }
+
+    function decryptData(ciphertext) {
+      try {
+        const bytes = CryptoJS.AES.decrypt(ciphertext, encryptionKey);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function togglePaid(index, paid) {
+      let visits = JSON.parse(localStorage.getItem("visits") || "[]");
+      const data = decryptData(visits[index]);
+      if (data) {
+        data.paid = paid;
+        visits[index] = encryptData(data);
+        localStorage.setItem("visits", JSON.stringify(visits));
+        loadClients();
+      }
+    }
+
+    function loadClients() {
+      const listDiv = document.getElementById("clientsList");
+      const filter = document.getElementById("filter").value;
+      const nameFilter = document.getElementById("nameFilter").value.toLowerCase();
+      const visits = JSON.parse(localStorage.getItem("visits") || "[]");
+      listDiv.innerHTML = "";
+
+      visits.forEach((cipher, i) => {
+        const data = decryptData(cipher);
+        if (!data) return;
+
+        if (filter === "not_paid" && data.paid) return;
+        if (nameFilter && !data.name.toLowerCase().includes(nameFilter)) return;
+
+        const div = document.createElement("div");
+        div.className = "entry";
+        div.innerHTML = `
+          <strong>${data.name}</strong><br>
+          📅 ${data.date}<br>
+          💇‍♀️ ${data.service}<br>
+          💰 ${data.amount} £<br>
+          💳 ${data.payment}<br>
+          <label class="toggle-paid">
+            <input type="checkbox" ${data.paid ? "checked" : ""} onchange="togglePaid(${i}, this.checked)"> Zapłacono
+          </label>
+        `;
+        listDiv.appendChild(div);
+      });
+    }
+
+    loadClients();
+  </script>
+</body>
+</html>
