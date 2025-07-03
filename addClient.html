@@ -24,10 +24,10 @@
 <body>
   <h1>Dodaj nową wizytę</h1>
 
-  <input type="datetime-local" id="date" />
-  <input type="text" id="name" placeholder="Imię klienta" />
-  <input type="text" id="service" placeholder="Usługa" />
-  <input type="number" id="amount" placeholder="Kwota (£)" />
+  <input type="datetime-local" id="date" required/>
+  <input type="text" id="name" placeholder="Imię klienta" required/>
+  <input type="text" id="service" placeholder="Usługa" required/>
+  <input type="number" id="amount" placeholder="Kwota (£)" required/>
   <select id="payment">
     <option value="gotowka">Gotówka</option>
     <option value="karta">Karta</option>

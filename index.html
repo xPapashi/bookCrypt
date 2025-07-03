@@ -16,7 +16,7 @@
     #summary p {
       margin: 0.25rem 0;
     }
-    button {
+    button, select {
       width: 100%;
       padding: 0.5rem;
       margin-bottom: 0.5rem;
@@ -34,19 +34,32 @@
       width: 100% !important;
       max-height: 300px;
     }
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .filters select {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
   <h1>Witamy w panelu</h1>
 
+  <div class="filters">
+    <select id="monthFilter" onchange="renderSummary()"></select>
+    <select id="yearFilter" onchange="renderSummary()"></select>
+  </div>
+
   <div id="summary"></div>
 
   <div class="chart-wrapper">
-    <h3 style="text-align:center; margin-top:0">Struktura płatności – bieżący miesiąc</h3>
+    <h3 style="text-align:center; margin-top:0">Struktura płatności – wybrany miesiąc</h3>
     <canvas id="monthChart"></canvas>
   </div>
   <div class="chart-wrapper">
-    <h3 style="text-align:center; margin-top:0">Struktura płatności – bieżący rok</h3>
+    <h3 style="text-align:center; margin-top:0">Struktura płatności – wybrany rok</h3>
     <canvas id="yearChart"></canvas>
   </div>
 
@@ -71,38 +84,70 @@
     let monthChartInstance = null;
     let yearChartInstance = null;
 
-    function renderSummary() {
-      const summaryDiv = document.getElementById("summary");
-      const visits = JSON.parse(localStorage.getItem("visits") || "[]");
+    function populateMonthYearFilters() {
+      const monthFilter = document.getElementById("monthFilter");
+      const yearFilter = document.getElementById("yearFilter");
       const now = new Date();
       const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
+
+      const months = [
+        "Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec",
+        "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"
+      ];
+
+      months.forEach((month, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = month;
+        if (index === currentMonth) option.selected = true;
+        monthFilter.appendChild(option);
+      });
+
+      // Assuming data might exist for a few years back
+      for (let i = currentYear; i >= currentYear - 5; i--) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = i;
+        if (i === currentYear) option.selected = true;
+        yearFilter.appendChild(option);
+      }
+    }
+
+    function renderSummary() {
+      const summaryDiv = document.getElementById("summary");
+      const visits = JSON.parse(localStorage.getItem("visits") || "[]");
+      const selectedMonth = parseInt(document.getElementById("monthFilter").value);
+      const selectedYear = parseInt(document.getElementById("yearFilter").value);
 
       let monthCash = 0, monthCard = 0, yearCash = 0, yearCard = 0, totalServed = 0;
 
       visits.forEach(cipher => {
         const data = decryptData(cipher);
         if (data && data.paid) {
-          totalServed++;
           const d = new Date(data.date);
           const amt = parseFloat(data.amount) || 0;
 
-          if (d.getFullYear() === currentYear) {
+          if (d.getFullYear() === selectedYear) {
             if (data.payment === "gotowka") yearCash += amt;
             else if (data.payment === "karta") yearCard += amt;
 
-            if (d.getMonth() === currentMonth) {
+            if (d.getMonth() === selectedMonth) {
               if (data.payment === "gotowka") monthCash += amt;
               else if (data.payment === "karta") monthCard += amt;
             }
+          }
+          // Only count total served clients if they fall within the selected year for a more relevant total
+          if (d.getFullYear() === selectedYear) {
+              totalServed++;
           }
         }
       });
 
       summaryDiv.innerHTML = `
-        <p><strong>Obsłużonych klientów (zapłaconych):</strong> ${totalServed}</p>
-        <p><strong>Bieżący miesiąc:</strong> Gotówka £${monthCash.toFixed(2)} | Karta £${monthCard.toFixed(2)}</p>
-        <p><strong>Bieżący rok:</strong> Gotówka £${yearCash.toFixed(2)} | Karta £${yearCard.toFixed(2)}</p>
+        <p><strong>Obsłużonych klientów (zapłaconych) w wybranym roku:</strong> ${totalServed}</p>
+        <p><strong>Wybrany miesiąc:</strong> Gotówka £${monthCash.toFixed(2)} | Karta £${monthCard.toFixed(2)}</p>
+        <p><strong>Wybrany rok:</strong> Gotówka £${yearCash.toFixed(2)} | Karta £${yearCard.toFixed(2)}</p>
       `;
 
       renderCharts(monthCash, monthCard, yearCash, yearCard);
@@ -120,14 +165,18 @@
         data: {
           labels: ["Gotówka", "Karta"],
           datasets: [{
-            data: [monthCash, monthCard]
+            data: [monthCash, monthCard],
+            backgroundColor: ['#4CAF50', '#2196F3'],
+            hoverOffset: 4
           }]
         },
         options: {
           plugins: {
             legend: {position: "bottom"},
             title: {display: false}
-          }
+          },
+          responsive: true,
+          maintainAspectRatio: false
         }
       });
 
@@ -136,14 +185,18 @@
         data: {
           labels: ["Gotówka", "Karta"],
           datasets: [{
-            data: [yearCash, yearCard]
+            data: [yearCash, yearCard],
+            backgroundColor: ['#FFC107', '#9C27B0'],
+            hoverOffset: 4
           }]
         },
         options: {
           plugins: {
             legend: {position: "bottom"},
             title: {display: false}
-          }
+          },
+          responsive: true,
+          maintainAspectRatio: false
         }
       });
     }
@@ -153,6 +206,7 @@
       location.href = "login.html";
     }
 
+    populateMonthYearFilters();
     renderSummary();
   </script>
 </body>
