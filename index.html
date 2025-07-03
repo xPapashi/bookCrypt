@@ -51,7 +51,7 @@
     <input type="datetime-local" id="date" />
     <input type="text" id="name" placeholder="Imię klienta" />
     <input type="text" id="service" placeholder="Usługa" />
-    <input type="number" id="amount" placeholder="Kwota (zł)" />
+    <input type="number" id="amount" placeholder="Kwota (£)" />
     <select id="payment">
       <option value="gotowka">Gotówka</option>
       <option value="karta">Karta</option>
@@ -160,7 +160,7 @@
             <strong>${data.name}</strong><br/>
             📅 ${data.date}<br/>
             💇‍♀️ ${data.service}<br/>
-            💰 ${data.amount} zł<br/>
+            💰 ${data.amount} £<br/>
             💳 ${data.payment}<br/>
             <label>
               <input type="checkbox" ${data.paid ? "checked" : ""} onchange="togglePaid(${i}, this.checked)" /> Zapłacono
@@ -205,8 +205,8 @@
       });
 
       summaryDiv.innerHTML = `
-        <p><strong>Bieżący miesiąc</strong>: Gotówka ${monthCash.toFixed(2)} zł &nbsp;|&nbsp; Karta ${monthCard.toFixed(2)} zł</p>
-        <p><strong>Bieżący rok</strong>: Gotówka ${yearCash.toFixed(2)} zł &nbsp;|&nbsp; Karta ${yearCard.toFixed(2)} zł</p>
+        <p><strong>Bieżący miesiąc</strong>: Gotówka ${monthCash.toFixed(2)} £ &nbsp;|&nbsp; Karta ${monthCard.toFixed(2)} £</p>
+        <p><strong>Bieżący rok</strong>: Gotówka ${yearCash.toFixed(2)} £ &nbsp;|&nbsp; Karta ${yearCard.toFixed(2)} £</p>
       `;
     }
   </script>
