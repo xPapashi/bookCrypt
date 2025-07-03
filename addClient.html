@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dodaj wizytę – Wizyty Klientów</title>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 1rem;
+    }
+    input, select, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dodaj nową wizytę</h1>
+
+  <input type="datetime-local" id="date" />
+  <input type="text" id="name" placeholder="Imię klienta" />
+  <input type="text" id="service" placeholder="Usługa" />
+  <input type="number" id="amount" placeholder="Kwota (zł)" />
+  <select id="payment">
+    <option value="gotowka">Gotówka</option>
+    <option value="karta">Karta</option>
+  </select>
+  <label>
+    <input type="checkbox" id="paid" /> Zapłacono
+  </label>
+  <button onclick="saveVisit()">Zapisz wizytę</button>
+  <button onclick="location.href='index.html'">Wróć do panelu</button>
+
+  <script>
+    const encryptionKey = sessionStorage.getItem("key");
+    if (!encryptionKey) {
+      location.href = "login.html";
+    }
+
+    function encryptData(data) {
+      return CryptoJS.AES.encrypt(JSON.stringify(data), encryptionKey).toString();
+    }
+
+    function saveVisit() {
+      const visit = {
+        date: document.getElementById("date").value,
+        name: document.getElementById("name").value,
+        service: document.getElementById("service").value,
+        amount: document.getElementById("amount").value,
+        payment: document.getElementById("payment").value,
+        paid: document.getElementById("paid").checked
+      };
+
+      if (!visit.date || !visit.name || !visit.service || !visit.amount) {
+        alert("Uzupełnij wszystkie pola!");
+        return;
+      }
+
+      let visits = JSON.parse(localStorage.getItem("visits") || "[]");
+      visits.push(encryptData(visit));
+      localStorage.setItem("visits", JSON.stringify(visits));
+
+      // wyczyść formę
+      document.getElementById("date").value = "";
+      document.getElementById("name").value = "";
+      document.getElementById("service").value = "";
+      document.getElementById("amount").value = "";
+      document.getElementById("payment").value = "gotowka";
+      document.getElementById("paid").checked = false;
+
+      alert("Wizyta zapisana!");
+      location.href = "index.html";
+    }
+  </script>
+</body>
+</html>

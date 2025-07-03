@@ -3,91 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wizyty Klientów</title>
+  <title>Panel główny – Wizyty Klientów</title>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
-      max-width: 500px;
+      max-width: 600px;
       margin: auto;
       padding: 1rem;
     }
-    input, select, button, textarea {
-      display: block;
-      width: 100%;
-      margin-bottom: 1rem;
-      padding: 0.5rem;
-      font-size: 1rem;
+    #summary p {
+      margin: 0.25rem 0;
     }
-    .entry {
-      border: 1px solid #ccc;
+    button {
+      width: 100%;
       padding: 0.5rem;
       margin-bottom: 0.5rem;
-      position: relative;
-    }
-    .delete-btn {
-      position: absolute;
-      top: 5px;
-      right: 10px;
-      cursor: pointer;
-      color: red;
-      font-weight: bold;
-    }
-    #summary {
-      border-top: 2px solid #0003;
-      padding-top: 0.5rem;
-      margin-top: 1rem;
-      font-weight: bold;
+      font-size: 1rem;
     }
   </style>
 </head>
 <body>
-  <h2>Wprowadź hasło dostępu</h2>
-  <input type="password" id="password" placeholder="Hasło" />
-  <button onclick="unlock()">Odblokuj dane</button>
+  <h1>Witamy w panelu</h1>
 
-  <div id="main" style="display:none">
-    <h2>Nowa wizyta</h2>
-    <input type="datetime-local" id="date" />
-    <input type="text" id="name" placeholder="Imię klienta" />
-    <input type="text" id="service" placeholder="Usługa" />
-    <input type="number" id="amount" placeholder="Kwota (£)" />
-    <select id="payment">
-      <option value="gotowka">Gotówka</option>
-      <option value="karta">Karta</option>
-    </select>
-    <label>
-      <input type="checkbox" id="paid" />
-      Zapłacono
-    </label>
-    <button onclick="saveVisit()">Zapisz wizytę</button>
+  <div id="summary"></div>
 
-    <button onclick="showUnpaid()">Pokaż niezapłacone</button>
-    <button onclick="loadVisits()">Pokaż wszystkie</button>
-
-    <h2>Lista wizyt</h2>
-    <div id="visitList"></div>
-
-    <h2>Podsumowanie</h2>
-    <div id="summary"></div>
-  </div>
+  <button onclick="location.href='addClient.html'">Dodaj nową wizytę</button>
+  <button onclick="logout()">Wyloguj</button>
 
   <script>
-    let encryptionKey = "";
-    let currentFilterUnpaid = false;
-
-    function unlock() {
-      encryptionKey = document.getElementById("password").value.trim();
-      if (!encryptionKey) {
-        alert("Hasło nie może być puste!");
-        return;
-      }
-      document.getElementById("main").style.display = "block";
-      loadVisits();
-    }
-
-    function encryptData(data) {
-      return CryptoJS.AES.encrypt(JSON.stringify(data), encryptionKey).toString();
+    // Sprawdzenie zalogowania
+    const encryptionKey = sessionStorage.getItem("key");
+    if (!encryptionKey) {
+      location.href = "login.html";
     }
 
     function decryptData(ciphertext) {
@@ -99,96 +47,19 @@
       }
     }
 
-    function saveVisit() {
-      const visit = {
-        date: document.getElementById("date").value,
-        name: document.getElementById("name").value,
-        service: document.getElementById("service").value,
-        amount: document.getElementById("amount").value,
-        payment: document.getElementById("payment").value,
-        paid: document.getElementById("paid").checked
-      };
-
-      let visits = JSON.parse(localStorage.getItem("visits") || "[]");
-      visits.push(encryptData(visit));
-      localStorage.setItem("visits", JSON.stringify(visits));
-
-      // Reset formularza
-      document.getElementById("date").value = "";
-      document.getElementById("name").value = "";
-      document.getElementById("service").value = "";
-      document.getElementById("amount").value = "";
-      document.getElementById("payment").value = "gotowka";
-      document.getElementById("paid").checked = false;
-
-      loadVisits(currentFilterUnpaid);
-    }
-
-    function deleteVisit(index) {
-      let visits = JSON.parse(localStorage.getItem("visits") || "[]");
-      visits.splice(index, 1);
-      localStorage.setItem("visits", JSON.stringify(visits));
-      loadVisits(currentFilterUnpaid);
-    }
-
-    function togglePaid(index, paid) {
-      let visits = JSON.parse(localStorage.getItem("visits") || "[]");
-      const data = decryptData(visits[index]);
-      if (data) {
-        data.paid = paid;
-        visits[index] = encryptData(data);
-        localStorage.setItem("visits", JSON.stringify(visits));
-        loadVisits(currentFilterUnpaid);
-      }
-    }
-
-    function loadVisits(filterUnpaid = false) {
-      currentFilterUnpaid = filterUnpaid;
-      const list = document.getElementById("visitList");
-      list.innerHTML = "";
-      const visits = JSON.parse(localStorage.getItem("visits") || "[]");
-
-      visits.forEach((cipher, i) => {
-        const data = decryptData(cipher);
-        if (data) {
-          if (filterUnpaid && data.paid) return; // pomijamy zapłacone gdy filtr aktywny
-
-          const div = document.createElement("div");
-          div.className = "entry";
-          div.innerHTML = `
-            <span class="delete-btn" onclick="deleteVisit(${i})">X</span>
-            <strong>${data.name}</strong><br/>
-            📅 ${data.date}<br/>
-            💇‍♀️ ${data.service}<br/>
-            💰 ${data.amount} £<br/>
-            💳 ${data.payment}<br/>
-            <label>
-              <input type="checkbox" ${data.paid ? "checked" : ""} onchange="togglePaid(${i}, this.checked)" /> Zapłacono
-            </label>
-          `;
-          list.appendChild(div);
-        }
-      });
-
-      renderSummary();
-    }
-
-    function showUnpaid() {
-      loadVisits(true);
-    }
-
     function renderSummary() {
       const summaryDiv = document.getElementById("summary");
       const visits = JSON.parse(localStorage.getItem("visits") || "[]");
       const now = new Date();
-      const currentMonth = now.getMonth(); // 0-11
+      const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
 
-      let monthCash = 0, monthCard = 0, yearCash = 0, yearCard = 0;
+      let monthCash = 0, monthCard = 0, yearCash = 0, yearCard = 0, totalServed = 0;
 
       visits.forEach(cipher => {
         const data = decryptData(cipher);
-        if (data && data.paid) { // podliczamy tylko zapłacone
+        if (data && data.paid) {
+          totalServed++;
           const d = new Date(data.date);
           const amt = parseFloat(data.amount) || 0;
 
@@ -205,10 +76,18 @@
       });
 
       summaryDiv.innerHTML = `
-        <p><strong>Bieżący miesiąc</strong>: Gotówka ${monthCash.toFixed(2)} £ &nbsp;|&nbsp; Karta ${monthCard.toFixed(2)} £</p>
-        <p><strong>Bieżący rok</strong>: Gotówka ${yearCash.toFixed(2)} £ &nbsp;|&nbsp; Karta ${yearCard.toFixed(2)} £</p>
+        <p><strong>Obsłużonych klientów (zapłaconych):</strong> ${totalServed}</p>
+        <p><strong>Bieżący miesiąc:</strong> Gotówka ${monthCash.toFixed(2)} zł | Karta ${monthCard.toFixed(2)} zł</p>
+        <p><strong>Bieżący rok:</strong> Gotówka ${yearCash.toFixed(2)} zł | Karta ${yearCard.toFixed(2)} zł</p>
       `;
     }
+
+    function logout() {
+      sessionStorage.removeItem("key");
+      location.href = "login.html";
+    }
+
+    renderSummary();
   </script>
 </body>
 </html>

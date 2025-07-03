@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logowanie – Wizyty Klientów</title>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 1rem;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 0;
+      width: 250px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Panel właściciela</h1>
+  <input type="password" id="password" placeholder="Hasło" />
+  <button onclick="login()">Zaloguj</button>
+
+  <script>
+    function login() {
+      const key = document.getElementById("password").value.trim();
+      if (!key) {
+        alert("Hasło nie może być puste!");
+        return;
+      }
+      sessionStorage.setItem("key", key);
+      location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
