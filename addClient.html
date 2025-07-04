@@ -6,37 +6,98 @@
   <title>Dodaj wizytę – Wizyty Klientów</title>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
   <style>
-    body {
-      font-family: sans-serif;
-      max-width: 600px;
-      margin: auto;
-      padding: 1rem;
+    :root {
+      --primary-color: #a26ff3;
+      --accent-color: #f559a9;
+      --bg-color: #f8f9fd;
+      --card-bg: white;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
-    input, select, button {
-      display: block;
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+      margin: 0;
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 1.5rem;
+      box-shadow: var(--shadow);
       width: 100%;
+      max-width: 400px;
+    }
+
+    .card h1 {
+      text-align: center;
+      color: var(--primary-color);
+      margin-bottom: 1.5rem;
+      font-size: 1.4rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
       margin-bottom: 1rem;
-      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 0.75rem;
       font-size: 1rem;
+    }
+
+    label {
+      display: flex;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    label input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: var(--primary-color);
+      border: none;
+      border-radius: 0.75rem;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #7c4fe0;
     }
   </style>
 </head>
 <body>
-  <h1>Dodaj nową wizytę</h1>
+  <div class="card">
+    <h1>Dodaj nową wizytę</h1>
 
-  <input type="datetime-local" id="date" required/>
-  <input type="text" id="name" placeholder="Imię klienta" required/>
-  <input type="text" id="service" placeholder="Usługa" required/>
-  <input type="number" id="amount" placeholder="Kwota (£)" required/>
-  <select id="payment">
-    <option value="gotowka">Gotówka</option>
-    <option value="karta">Karta</option>
-  </select>
-  <label>
-    <input type="checkbox" id="paid" /> Zapłacono
-  </label>
-  <button onclick="saveVisit()">Zapisz wizytę</button>
-  <button onclick="location.href='index.html'">Wróć do panelu</button>
+    <input type="datetime-local" id="date" required />
+    <input type="text" id="name" placeholder="Imię klienta" required />
+    <input type="text" id="service" placeholder="Usługa" required />
+    <input type="number" id="amount" placeholder="Kwota (£)" required />
+    <select id="payment">
+      <option value="gotowka">Gotówka</option>
+      <option value="karta">Karta</option>
+    </select>
+    <div style="display: flex;">
+      <label>
+        <input type="checkbox" id="paid" /> Zapłacono
+      </label>
+    </div>
+    <button onclick="saveVisit()">Zapisz wizytę</button>
+    <button onclick="location.href='index.html'">Wróć do panelu</button>
+  </div>
 
   <script>
     const encryptionKey = sessionStorage.getItem("key");
@@ -67,7 +128,7 @@
       visits.push(encryptData(visit));
       localStorage.setItem("visits", JSON.stringify(visits));
 
-      // wyczyść formę
+      // Clear form
       document.getElementById("date").value = "";
       document.getElementById("name").value = "";
       document.getElementById("service").value = "";

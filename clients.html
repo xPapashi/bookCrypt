@@ -5,69 +5,258 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lista klientów</title>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary-color: #5e5edd; /* Purple/blue from index.html */
+      --accent-color: #FFC107; /* Amber for highlights, consistent with previous */
+      --background-color: #f4f7fe; /* Light blue/grey from index.html */
+      --card-background: #ffffff; /* White for cards */
+      --text-color: #333;
+      --light-text-color: #666;
+      --border-color: #e0e0e0;
+      --shadow-color: rgba(0, 0, 0, 0.05); /* Softer shadow from index.html */
+      --red-color: #f44336; /* Red for 'not paid' */
+    }
+
     body {
-      font-family: sans-serif;
+      font-family: 'Roboto', sans-serif;
       max-width: 700px;
       margin: auto;
-      padding: 1rem;
+      padding: 1.5rem;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      box-sizing: border-box; /* Ensures padding doesn't add to width */
     }
-    select, button, input {
+
+    h1 {
+      font-family: 'Montserrat', sans-serif;
+      color: var(--primary-color);
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 1.8rem;
+    }
+
+    .filters-container {
+      display: flex;
+      flex-direction: column; /* Stack on mobile */
+      gap: 1rem; /* Spacing between filters */
+      margin-bottom: 1.5rem;
+    }
+
+    @media (min-width: 480px) { /* Adjust breakpoint as needed */
+      .filters-container {
+        flex-direction: row; /* Side-by-side on larger mobile/tablet */
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .filters-container input,
+      .filters-container select {
+          flex: 1; /* Allow items to grow */
+          min-width: 150px; /* Minimum width for filters */
+      }
+    }
+
+    select, input[type="text"] {
+      font-family: 'Roboto', sans-serif;
       font-size: 1rem;
-      padding: 0.5rem;
-      margin: 1rem 0;
-      width: 100%;
+      padding: 0.75rem 1rem;
+      box-sizing: border-box;
+      border: 1px solid #ccc; /* Border color from index.html filters */
+      border-radius: 10px; /* Larger border-radius from index.html */
+      background-color: var(--card-background);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+      -webkit-appearance: none; /* Remove default select styling */
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url('data:image/svg+xml;utf8,<svg fill="%23333333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); /* Custom arrow */
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 16px;
     }
+
+    select:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(94, 94, 221, 0.2); /* Shadow based on primary color */
+    }
+
     .entry {
-      border: 1px solid #ccc;
-      padding: 1rem;
+      background: linear-gradient(135deg, #ffffff, #f0f4ff); /* Gradient from index.html cards */
+      padding: 1.5rem;
       margin-bottom: 1rem;
+      border-radius: 20px; /* Larger border-radius for cards */
+      box-shadow: 0 4px 12px var(--shadow-color); /* Adjusted shadow */
       position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
+
+    .entry strong {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.2rem;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .entry span {
+      display: block;
+      color: var(--light-text-color);
+      font-size: 0.95rem;
+    }
+
+    .entry .amount {
+        font-weight: bold;
+        color: var(--text-color);
+    }
+
+    /* Custom Toggle Switch */
     .toggle-paid {
       position: absolute;
-      top: 1rem;
-      right: 1rem;
+      top: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+    }
+
+    .toggle-paid input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      margin: 0; /* Override default margin for input */
+      padding: 0; /* Override default padding for input */
+    }
+
+    .slider {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background-color: var(--border-color);
+      border-radius: 24px;
+      transition: background-color 0.4s;
+    }
+
+    .slider:before {
+      content: "";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.4s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary-color);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    .toggle-paid-text {
+        font-size: 0.9rem;
+        color: var(--light-text-color);
+        margin-right: 0.5rem;
+        white-space: nowrap; /* Prevents text from wrapping */
+    }
+
+    /* Styles for "Not Paid" state */
+    .entry.not-paid {
+        border: 1px solid var(--red-color); /* Add a red border to not-paid cards */
+        box-shadow: 0 4px 15px rgba(244, 67, 54, 0.1); /* Soft red shadow */
+        background: linear-gradient(135deg, #fffafa, #ffebeb); /* Lighter red tint background */
+    }
+
+    .entry.not-paid strong {
+        color: var(--red-color);
+    }
+
+    /* Override slider background for not-paid entries if unchecked, otherwise, green when checked */
+    .entry.not-paid .slider {
+        background-color: var(--red-color);
+    }
+    input:checked + .slider { /* When checkbox is checked, it should be primary color regardless of .not-paid class */
+      background-color: var(--primary-color);
+    }
+
+    .btn {
+      background: var(--primary-color);
+      color: white;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 15px; /* Larger border-radius for buttons */
+      font-size: 1rem;
+      transition: 0.3s ease;
+      cursor: pointer;
+      width: 100%; /* Full width for mobile */
+      box-sizing: border-box; /* Include padding in width */
+      margin-top: 1.5rem; /* Spacing from client list */
+    }
+
+    .btn:hover {
+      background: #4e4ed9; /* Darker shade for hover */
+    }
+
+    /* General responsive adjustments for better mobile experience */
+    body {
+      padding: 1rem; /* Slightly less padding on very small screens */
+    }
+    @media (min-width: 400px) {
+      body {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
   <h1>Lista wizyt klientów</h1>
 
-  <input type="text" id="nameFilter" placeholder="Filtruj po imieniu" oninput="loadClients()">
+  <div class="filters-container">
+    <input type="text" id="nameFilter" placeholder="Filtruj po imieniu" oninput="loadClients()">
+    <select id="filter" onchange="loadClients()">
+      <option value="all">Wszystkie wizyty</option>
+      <option value="not_paid">Tylko nieopłacone</option>
+    </select>
+  </div>
 
-  <select id="filter" onchange="loadClients()">
-    <option value="all">Wszyscy</option>
-    <option value="not_paid">Nie zapłacili</option>
-  </select>
+  <div id="clientsList">
+    </div>
 
-  <div id="clientsList"></div>
-  <button onclick="location.href='index.html'">Wróć do panelu</button>
+  <button class="btn" onclick="location.href='index.html'">Wróć do panelu</button>
 
   <script>
-    const encryptionKey = sessionStorage.getItem("key");
-    if (!encryptionKey) {
-      location.href = "login.html";
-    }
+    const SECRET_KEY = "your-secret-key"; // CHANGE THIS TO A STRONG, UNIQUE KEY!
+    const encryptionKey = sessionStorage.getItem("key") || SECRET_KEY; // Use session key if available
 
     function encryptData(data) {
       return CryptoJS.AES.encrypt(JSON.stringify(data), encryptionKey).toString();
     }
 
-    function decryptData(ciphertext) {
+    function decryptData(cipherText) {
       try {
-        const bytes = CryptoJS.AES.decrypt(ciphertext, encryptionKey);
+        const bytes = CryptoJS.AES.decrypt(cipherText, encryptionKey);
         return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
       } catch (e) {
+        console.error("Decryption failed:", e);
         return null;
       }
     }
 
-    function togglePaid(index, paid) {
+    function togglePaid(index) {
       let visits = JSON.parse(localStorage.getItem("visits") || "[]");
       const data = decryptData(visits[index]);
       if (data) {
-        data.paid = paid;
+        data.paid = !data.paid; // Toggle the paid status
         visits[index] = encryptData(data);
         localStorage.setItem("visits", JSON.stringify(visits));
         loadClients();
@@ -81,6 +270,11 @@
       const visits = JSON.parse(localStorage.getItem("visits") || "[]");
       listDiv.innerHTML = "";
 
+      if (visits.length === 0) {
+        listDiv.innerHTML = "<p style='text-align: center; color: var(--light-text-color); margin-top: 2rem;'>Brak zapisanych wizyt.</p>";
+        return;
+      }
+
       visits.forEach((cipher, i) => {
         const data = decryptData(cipher);
         if (!data) return;
@@ -89,22 +283,36 @@
         if (nameFilter && !data.name.toLowerCase().includes(nameFilter)) return;
 
         const div = document.createElement("div");
-        div.className = "entry";
+        div.className = `entry ${!data.paid ? "not-paid" : ""}`;
         div.innerHTML = `
-          <strong>${data.name}</strong><br>
-          📅 ${data.date}<br>
-          💇‍♀️ ${data.service}<br>
-          💰 ${data.amount} £<br>
-          💳 ${data.payment}<br>
+          <strong>${data.name}</strong>
+          <span>📅 ${data.date}</span>
+          <span>💇‍♀️ ${data.service}</span>
+          <span class="amount">💰 ${data.amount} £</span>
+          <span>💳 ${data.payment}</span>
           <label class="toggle-paid">
-            <input type="checkbox" ${data.paid ? "checked" : ""} onchange="togglePaid(${i}, this.checked)"> Zapłacono
+            <span class="toggle-paid-text">${data.paid ? "Opłacone" : "Nieopłacone"}</span>
+            <input type="checkbox" ${data.paid ? "checked" : ""} onchange="togglePaid(${i})">
+            <span class="slider"></span>
           </label>
         `;
         listDiv.appendChild(div);
       });
     }
 
-    loadClients();
+    // Example data for demonstration (you can remove this in production)
+    if (!localStorage.getItem("visits")) {
+        const exampleVisits = [
+            { name: "Anna Kowalska", date: "2023-01-15", service: "Strzyżenie damskie", amount: "80", payment: "Karta", paid: true },
+            { name: "Piotr Nowak", date: "2023-01-18", service: "Strzyżenie męskie", amount: "50", payment: "Gotówka", paid: false },
+            { name: "Maria Wiśniewska", date: "2023-01-20", service: "Koloryzacja", amount: "200", payment: "Karta", paid: true },
+            { name: "Janina Dąbrowska", date: "2023-01-22", service: "Manicure hybrydowy", amount: "90", payment: "Karta", paid: false }
+        ];
+        const encryptedVisits = exampleVisits.map(visit => encryptData(visit));
+        localStorage.setItem("visits", JSON.stringify(encryptedVisits));
+    }
+
+    document.addEventListener("DOMContentLoaded", loadClients);
   </script>
 </body>
 </html>
