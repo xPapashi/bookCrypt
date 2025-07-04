@@ -1,166 +1,234 @@
 <!DOCTYPE html>
 <html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Panel główny – Wizyty Klientów</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel główny – Wizyty Klientów</title>
 
-    <!-- Font & Icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+  <!-- Font & Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
 
-    <style>
-      body {
-        font-family: 'Segoe UI', sans-serif;
-        margin: 0;
-        padding: 1rem;
-        background: #f4f7fe;
-        color: #333;
-        box-sizing: border-box;
-      }
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #f4f7fe;
+      color: #333;
+      box-sizing: border-box;
+      padding-bottom: 80px;
+    }
 
-      h1 {
-        text-align: center;
-        margin-bottom: 1rem;
-        color: #5e5edd;
-      }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #5e5edd;
+    }
 
-      .filters {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin-bottom: 1rem;
-      }
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
 
-      .filters select {
-        flex: 1;
-        padding: 0.6rem;
-        border-radius: 10px;
-        border: 1px solid #ccc;
-        font-size: 1rem;
-        background: #fff;
-        max-width: 200px;
-      }
+    .filters select {
+      flex: 1;
+      padding: 0.6rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      background: #fff;
+      max-width: 200px;
+    }
 
+    .summary-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: linear-gradient(135deg, #ffffff, #f0f4ff);
+      border-radius: 20px;
+      padding: 1rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .card h2 {
+      font-size: 1.2rem;
+      margin: 0.25rem 0;
+    }
+
+    .card p {
+      margin: 0;
+      font-weight: bold;
+      font-size: 1.4rem;
+    }
+
+    .chart-wrapper {
+      padding: 1rem;
+      background: #ffffff;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    canvas {
+      width: 100% !important;
+      max-height: 300px;
+    }
+
+    @media (min-width: 600px) {
       .summary-cards {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        margin-bottom: 2rem;
+        flex-direction: row;
+        flex-wrap: wrap;
       }
 
       .card {
-        background: linear-gradient(135deg, #ffffff, #f0f4ff);
-        border-radius: 20px;
-        padding: 1rem;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-        text-align: center;
-        transition: all 0.3s ease;
+        flex: 1;
+        min-width: 180px;
       }
+    }
 
-      .card h2 {
-        font-size: 1.2rem;
-        margin: 0.25rem 0;
-      }
+    /* === Bottom Mobile Navigation === */
+    .mobile-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: linear-gradient(135deg, #eaeaff, #f5f5ff);
+      border-top: 1px solid #ddd;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+      z-index: 1000;
+      backdrop-filter: blur(8px);
+    }
 
-      .card p {
-        margin: 0;
-        font-weight: bold;
-        font-size: 1.4rem;
-      }
+    .nav-item {
+      flex: 1;
+      text-align: center;
+      color: #5e5edd;
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      padding: 4px 0;
+      font-weight: 500;
+      text-decoration: none;
+    }
 
-      .chart-wrapper {
-        padding: 1rem;
-        background: #ffffff;
-        border-radius: 20px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      }
+    .nav-item i {
+      font-size: 1.2rem;
+      margin-bottom: 2px;
+    }
 
-      canvas {
-        width: 100% !important;
-        max-height: 300px;
-      }
+    .nav-item.active,
+    .nav-item:hover {
+      background: #e3e3ff;
+      border-radius: 10px;
+      color: #4a4adb;
+    }
 
-      .btn-container {
+    /* === Desktop Hamburger Nav (visible on wider screens) === */
+    .hamburger-nav {
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      .hamburger-nav {
         display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        margin-top: 2rem;
+        gap: 1rem;
+        justify-content: center;
+        background: #f0f4ff;
+        padding: 1rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
       }
 
-      .btn {
-        background: #5e5edd;
-        color: white;
-        padding: 0.75rem;
-        border: none;
-        border-radius: 15px;
-        font-size: 1rem;
-        transition: 0.3s ease;
+      .hamburger-nav a {
+        color: #5e5edd;
+        font-weight: 600;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        transition: background 0.2s;
       }
 
-      .btn:hover {
-        background: #4e4ed9;
-        cursor: pointer;
+      .hamburger-nav a:hover,
+      .hamburger-nav a.active {
+        background: #dddffe;
+        color: #4a4adb;
       }
 
-      @media (min-width: 600px) {
-        .summary-cards {
-          flex-direction: row;
-          flex-wrap: wrap;
-        }
-
-        .card {
-          flex: 1;
-          min-width: 180px;
-        }
+      .mobile-nav {
+        display: none;
       }
-    </style>
-  </head>
+    }
+  </style>
+</head>
 
-  <body>
-    <h1>📊 Panel Wizyt Klientów</h1>
+<body>
+  <h1>📊 Panel Wizyt Klientów</h1>
 
-    <div class="filters">
-      <select id="monthFilter" onchange="renderSummary()"></select>
-      <select id="yearFilter" onchange="renderSummary()"></select>
-    </div>
+  <!-- Hamburger Menu for Desktop -->
+  <div class="hamburger-nav">
+    <a href="addClient.html" class="nav-link">Dodaj wizytę</a>
+    <a href="clients.html" class="nav-link">Klienci</a>
+    <a href="settings.html" class="nav-link">Ustawienia</a>
+    <a href="#" class="nav-link" onclick="logout()">Wyloguj</a>
+  </div>
 
-    <div id="summary">
-      <div class="summary-cards">
-        <div class="card">
-          <h2><i class="fas fa-users"></i> Obsłużonych klientów</h2>
-          <p id="served"></p>
-        </div>
-        <div class="card">
-          <h2><i class="fas fa-money-bill-wave"></i> Gotówka (miesiąc)</h2>
-          <p id="monthCash"></p>
-        </div>
-        <div class="card">
-          <h2><i class="fas fa-credit-card"></i> Karta (miesiąc)</h2>
-          <p id="monthCard"></p>
-        </div>
+  <div class="filters">
+    <select id="monthFilter" onchange="renderSummary()"></select>
+    <select id="yearFilter" onchange="renderSummary()"></select>
+  </div>
+
+  <div id="summary">
+    <div class="summary-cards">
+      <div class="card">
+        <h2><i class="fas fa-users"></i> Obsłużonych klientów</h2>
+        <p id="served"></p>
       </div>
-      <div class="summary-cards">
-        <div class="card">
-          <h2><i class="fas fa-wallet"></i> Gotówka (rok)</h2>
-          <p id="yearCash"></p>
-        </div>
-        <div class="card">
-          <h2><i class="fas fa-credit-card-front"></i> Karta (rok)</h2>
-          <p id="yearCard"></p>
-        </div>
+      <div class="card">
+        <h2><i class="fas fa-money-bill-wave"></i> Gotówka (miesiąc)</h2>
+        <p id="monthCash"></p>
+      </div>
+      <div class="card">
+        <h2><i class="fas fa-credit-card"></i> Karta (miesiąc)</h2>
+        <p id="monthCard"></p>
       </div>
     </div>
+    <div class="summary-cards">
+      <div class="card">
+        <h2><i class="fas fa-wallet"></i> Gotówka (rok)</h2>
+        <p id="yearCash"></p>
+      </div>
+      <div class="card">
+        <h2><i class="fas fa-credit-card-front"></i> Karta (rok)</h2>
+        <p id="yearCard"></p>
+      </div>
+    </div>
+  </div>
 
-    <div class="chart-wrapper">
+  <div class="chart-wrapper">
     <h3 style="text-align:center; margin-top:0">Struktura płatności – wybrany miesiąc</h3>
     <canvas id="monthChart"></canvas>
   </div>
@@ -169,153 +237,170 @@
     <canvas id="yearChart"></canvas>
   </div>
 
-    <div class="btn-container">
-      <button class="btn" onclick="location.href='addClient.html'">
-        ➕ Dodaj wizytę
-      </button>
-      <button class="btn" onclick="location.href='clients.html'">
-        📋 Zobacz klientów
-      </button>
-      <button class="btn" onclick="location.href='settings.html'">⚙️ Ustawienia</button>
-      <button class="btn" onclick="logout()">🚪 Wyloguj</button>
-    </div>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="mobile-nav">
+    <a href="addClient.html" class="nav-item" id="nav-add">
+      <i class="fas fa-plus-circle"></i>
+      <span>Dodaj</span>
+    </a>
+    <a href="clients.html" class="nav-item" id="nav-clients">
+      <i class="fas fa-users"></i>
+      <span>Klienci</span>
+    </a>
+    <a href="settings.html" class="nav-item" id="nav-settings">
+      <i class="fas fa-cog"></i>
+      <span>Ustawienia</span>
+    </a>
+    <button class="nav-item" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Wyloguj</span>
+    </button>
+  </nav>
 
-    <script>
-      const encryptionKey = sessionStorage.getItem("key");
-      if (!encryptionKey) location.href = "login.html";
+  <script>
+    const encryptionKey = sessionStorage.getItem("key");
+    if (!encryptionKey) location.href = "login.html";
 
-      function decryptData(ciphertext) {
-        try {
-          const bytes = CryptoJS.AES.decrypt(ciphertext, encryptionKey);
-          return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-        } catch (e) {
-          return null;
-        }
+    function decryptData(ciphertext) {
+      try {
+        const bytes = CryptoJS.AES.decrypt(ciphertext, encryptionKey);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      } catch (e) {
+        return null;
       }
+    }
 
-      let monthChartInstance = null;
-      let yearChartInstance = null;
+    function populateMonthYearFilters() {
+      const monthFilter = document.getElementById("monthFilter");
+      const yearFilter = document.getElementById("yearFilter");
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
 
-      function populateMonthYearFilters() {
-        const monthFilter = document.getElementById("monthFilter");
-        const yearFilter = document.getElementById("yearFilter");
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
+      const months = [
+        "Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec",
+        "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"
+      ];
 
-        const months = [
-          "Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec",
-          "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"
-        ];
+      months.forEach((month, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = month;
+        if (index === currentMonth) option.selected = true;
+        monthFilter.appendChild(option);
+      });
 
-        months.forEach((month, index) => {
-          const option = document.createElement("option");
-          option.value = index;
-          option.textContent = month;
-          if (index === currentMonth) option.selected = true;
-          monthFilter.appendChild(option);
-        });
-
-        for (let i = currentYear; i >= currentYear - 5; i--) {
-          const option = document.createElement("option");
-          option.value = i;
-          option.textContent = i;
-          if (i === currentYear) option.selected = true;
-          yearFilter.appendChild(option);
-        }
+      for (let i = currentYear; i >= currentYear - 5; i--) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = i;
+        if (i === currentYear) option.selected = true;
+        yearFilter.appendChild(option);
       }
+    }
 
-      function renderSummary() {
-        const visits = JSON.parse(localStorage.getItem("visits") || "[]");
-        const selectedMonth = parseInt(document.getElementById("monthFilter").value);
-        const selectedYear = parseInt(document.getElementById("yearFilter").value);
+    function renderSummary() {
+      const visits = JSON.parse(localStorage.getItem("visits") || "[]");
+      const selectedMonth = parseInt(document.getElementById("monthFilter").value);
+      const selectedYear = parseInt(document.getElementById("yearFilter").value);
 
-        let monthCash = 0, monthCard = 0, yearCash = 0, yearCard = 0, totalServed = 0;
+      let monthCash = 0, monthCard = 0, yearCash = 0, yearCard = 0, totalServed = 0;
 
-        visits.forEach((cipher) => {
-          const data = decryptData(cipher);
-          if (data && data.paid) {
-            const d = new Date(data.date);
-            const amt = parseFloat(data.amount) || 0;
+      visits.forEach((cipher) => {
+        const data = decryptData(cipher);
+        if (data && data.paid) {
+          const d = new Date(data.date);
+          const amt = parseFloat(data.amount) || 0;
 
-            if (d.getFullYear() === selectedYear) {
-              if (data.payment === "gotowka") yearCash += amt;
-              else if (data.payment === "karta") yearCard += amt;
+          if (d.getFullYear() === selectedYear) {
+            if (data.payment === "gotowka") yearCash += amt;
+            else if (data.payment === "karta") yearCard += amt;
 
-              if (d.getMonth() === selectedMonth) {
-                if (data.payment === "gotowka") monthCash += amt;
-                else if (data.payment === "karta") monthCard += amt;
-              }
-
-              totalServed++;
+            if (d.getMonth() === selectedMonth) {
+              if (data.payment === "gotowka") monthCash += amt;
+              else if (data.payment === "karta") monthCard += amt;
             }
+
+            totalServed++;
           }
-        });
+        }
+      });
 
-        document.getElementById("served").textContent = totalServed;
-        document.getElementById("monthCash").textContent = `£${monthCash.toFixed(2)}`;
-        document.getElementById("monthCard").textContent = `£${monthCard.toFixed(2)}`;
-        document.getElementById("yearCash").textContent = `£${yearCash.toFixed(2)}`;
-        document.getElementById("yearCard").textContent = `£${yearCard.toFixed(2)}`;
+      document.getElementById("served").textContent = totalServed;
+      document.getElementById("monthCash").textContent = `£${monthCash.toFixed(2)}`;
+      document.getElementById("monthCard").textContent = `£${monthCard.toFixed(2)}`;
+      document.getElementById("yearCash").textContent = `£${yearCash.toFixed(2)}`;
+      document.getElementById("yearCard").textContent = `£${yearCard.toFixed(2)}`;
 
-        renderCharts(monthCash, monthCard, yearCash, yearCard);
-      }
+      renderCharts(monthCash, monthCard, yearCash, yearCard);
+    }
 
-      function renderCharts(monthCash, monthCard, yearCash, yearCard) {
-        const monthCtx = document.getElementById("monthChart").getContext("2d");
-        const yearCtx = document.getElementById("yearChart").getContext("2d");
+    function renderCharts(monthCash, monthCard, yearCash, yearCard) {
+      const monthCtx = document.getElementById("monthChart").getContext("2d");
+      const yearCtx = document.getElementById("yearChart").getContext("2d");
 
-        if (monthChartInstance) monthChartInstance.destroy();
-        if (yearChartInstance) yearChartInstance.destroy();
+      if (window.monthChartInstance) window.monthChartInstance.destroy();
+      if (window.yearChartInstance) window.yearChartInstance.destroy();
 
-        monthChartInstance = new Chart(monthCtx, {
-          type: "pie",
-          data: {
-            labels: ["Gotówka", "Karta"],
-            datasets: [{
-              data: [monthCash, monthCard],
-              backgroundColor: ["#4CAF50", "#2196F3"],
-              hoverOffset: 4,
-            }],
+      window.monthChartInstance = new Chart(monthCtx, {
+        type: "pie",
+        data: {
+          labels: ["Gotówka", "Karta"],
+          datasets: [{
+            data: [monthCash, monthCard],
+            backgroundColor: ["#4CAF50", "#2196F3"],
+            hoverOffset: 4,
+          }],
+        },
+        options: {
+          plugins: {
+            legend: { position: "bottom" },
+            title: { display: false },
           },
-          options: {
-            plugins: {
-              legend: { position: "bottom" },
-              title: { display: false },
-            },
-            responsive: true,
-            maintainAspectRatio: false,
-          },
-        });
+          responsive: true,
+          maintainAspectRatio: false,
+        },
+      });
 
-        yearChartInstance = new Chart(yearCtx, {
-          type: "pie",
-          data: {
-            labels: ["Gotówka", "Karta"],
-            datasets: [{
-              data: [yearCash, yearCard],
-              backgroundColor: ["#FFC107", "#9C27B0"],
-              hoverOffset: 4,
-            }],
+      window.yearChartInstance = new Chart(yearCtx, {
+        type: "pie",
+        data: {
+          labels: ["Gotówka", "Karta"],
+          datasets: [{
+            data: [yearCash, yearCard],
+            backgroundColor: ["#FFC107", "#9C27B0"],
+            hoverOffset: 4,
+          }],
+        },
+        options: {
+          plugins: {
+            legend: { position: "bottom" },
+            title: { display: false },
           },
-          options: {
-            plugins: {
-              legend: { position: "bottom" },
-              title: { display: false },
-            },
-            responsive: true,
-            maintainAspectRatio: false,
-          },
-        });
-      }
+          responsive: true,
+          maintainAspectRatio: false,
+        },
+      });
+    }
 
-      function logout() {
-        sessionStorage.removeItem("key");
-        location.href = "login.html";
-      }
+    function logout() {
+      sessionStorage.removeItem("key");
+      location.href = "login.html";
+    }
 
-      populateMonthYearFilters();
-      renderSummary();
-    </script>
-  </body>
+    function highlightActiveNav() {
+      const current = window.location.pathname;
+      const items = document.querySelectorAll(".nav-item, .nav-link");
+      items.forEach(el => {
+        if (el.href && current.includes(el.getAttribute("href"))) {
+          el.classList.add("active");
+        }
+      });
+    }
+
+    populateMonthYearFilters();
+    renderSummary();
+    highlightActiveNav();
+  </script>
+</body>
 </html>
