@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kartoteka klienta</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Font and SweetAlert2 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root {
+      --primary: #a26ff3;
+      --bg: #f4f7fe;
+      --card: #ffffff;
+      --text: #333;
+      --note: #f0f0f5;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+
+    .visit {
+      background: var(--card);
+      padding: 1rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .visit p {
+      margin: 0.4rem 0;
+    }
+
+    .note-box {
+      background: var(--note);
+      padding: 0.6rem;
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      margin-top: 0.5rem;
+      font-style: italic;
+      font-size: 0.95rem;
+    }
+
+    .note-meta {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 0.3rem;
+    }
+
+    .edit-note-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      padding: 0.4rem 0.6rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .edit-note-btn:hover {
+      background: #8e5de3;
+    }
+
+    .back-btn {
+      display: block;
+      margin: 2rem auto 1rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 12px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    @media (min-width: 600px) {
+      header h1 { font-size: 2rem; }
+      .visit { padding: 1.2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="clientName">Kartoteka klienta</h1>
+  </header>
+
+  <div id="visitsContainer"></div>
+
+  <button class="back-btn" onclick="history.back()">⬅️ Powrót</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <script>
+    const encryptionKey = sessionStorage.getItem("key");
+    if (!encryptionKey) location.href = "login.html";
+
+    function decryptData(cipherText) {
+      try {
+        const bytes = CryptoJS.AES.decrypt(cipherText, encryptionKey);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      } catch {
+        return null;
+      }
+    }
+
+    function encryptData(data) {
+      return CryptoJS.AES.encrypt(JSON.stringify(data), encryptionKey).toString();
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name") || "";
+    document.getElementById("clientName").textContent = `Kartoteka klienta: ${name}`;
+
+    function loadVisits() {
+      const allVisits = JSON.parse(localStorage.getItem("visits") || "[]");
+      const decrypted = allVisits.map(decryptData);
+      const visits = decrypted.map((v, i) => ({ ...v, index: i })).filter(v => v.name === name);
+
+      const container = document.getElementById("visitsContainer");
+      container.innerHTML = "";
+
+      if (visits.length === 0) {
+        container.innerHTML = "<p style='text-align:center;'>Brak wizyt dla tego klienta.</p>";
+        return;
+      }
+
+      visits.forEach(visit => {
+        const card = document.createElement("div");
+        card.className = "visit";
+
+        const noteHtml = visit.note
+          ? `<div class="note-box">📝 ${visit.note}
+              ${visit.noteDate ? `<div class="note-meta">Dodano: ${visit.noteDate}</div>` : ""}
+            </div>`
+          : `<div class="note-meta">Brak notatki</div>`;
+
+        card.innerHTML = `
+          <p><strong>📅 Data:</strong> ${visit.date}</p>
+          <p><strong>💇‍♀️ Usługa:</strong> ${visit.service}</p>
+          <p><strong>💰 Kwota:</strong> £${visit.amount}</p>
+          <p><strong>💳 Płatność:</strong> ${visit.payment}</p>
+          <p><strong>✅ Zapłacono:</strong> ${visit.paid ? "Tak" : "Nie"}</p>
+          ${noteHtml}
+          <button class="edit-note-btn" onclick="editNote(${visit.index})"><i class="fas fa-pen"></i> Notatka</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function editNote(index) {
+      const visits = JSON.parse(localStorage.getItem("visits") || "[]");
+      const data = decryptData(visits[index]);
+      if (!data) return;
+
+      Swal.fire({
+        title: `Notatka dla ${data.name}`,
+        input: 'textarea',
+        inputLabel: 'Treść notatki',
+        inputValue: data.note || '',
+        showCancelButton: true,
+        confirmButtonText: '💾 Zapisz',
+        cancelButtonText: '❌ Anuluj',
+        showDenyButton: data.note ? true : false,
+        denyButtonText: '🗑️ Usuń notatkę',
+        preConfirm: (note) => note.trim()
+      }).then(result => {
+        if (result.isConfirmed) {
+          data.note = result.value;
+          data.noteDate = new Date().toLocaleString();
+          visits[index] = encryptData(data);
+          localStorage.setItem("visits", JSON.stringify(visits));
+          loadVisits();
+        } else if (result.isDenied) {
+          delete data.note;
+          delete data.noteDate;
+          visits[index] = encryptData(data);
+          localStorage.setItem("visits", JSON.stringify(visits));
+          loadVisits();
+        }
+      });
+    }
+
+    loadVisits();
+  </script>
+</body>
+</html>

@@ -314,6 +314,7 @@
             <span class="slider"></span>
           </label>
           <button class="remove-btn" onclick="removeClient(${i})">Usuń</button>
+          <a href="clientDetails.html?name=${encodeURIComponent(data.name)}" style="color:#5e5edd; text-decoration:underline;">📂 Zobacz kartotekę</a>
         `;
         listDiv.appendChild(div);
       });
