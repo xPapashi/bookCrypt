@@ -183,10 +183,6 @@
       background-color: var(--red-color);
     }
 
-    input:checked + .slider {
-      background-color: var(--primary-color);
-    }
-
     .btn {
       background: var(--primary-color);
       color: white;
@@ -293,6 +289,8 @@
         return;
       }
 
+      const uniqueClients = {};
+
       visits.forEach((cipher, i) => {
         const data = decryptData(cipher);
         if (!data) return;
@@ -300,6 +298,12 @@
         if (filter === "not_paid" && data.paid) return;
         if (nameFilter && !data.name.toLowerCase().includes(nameFilter)) return;
 
+        if (!uniqueClients[data.name]) {
+          uniqueClients[data.name] = { data, index: i };
+        }
+      });
+
+      Object.values(uniqueClients).forEach(({ data, index }) => {
         const div = document.createElement("div");
         div.className = `entry ${!data.paid ? "not-paid" : ""}`;
         div.innerHTML = `
@@ -310,10 +314,10 @@
           <span>💳 ${data.payment}</span>
           <label class="toggle-paid">
             <span class="toggle-paid-text">${data.paid ? "Opłacone" : "Nieopłacone"}</span>
-            <input type="checkbox" ${data.paid ? "checked" : ""} onchange="togglePaid(${i})">
+            <input type="checkbox" ${data.paid ? "checked" : ""} onchange="togglePaid(${index})">
             <span class="slider"></span>
           </label>
-          <button class="remove-btn" onclick="removeClient(${i})">Usuń</button>
+          <button class="remove-btn" onclick="removeClient(${index})">Usuń</button>
           <a href="clientDetails.html?name=${encodeURIComponent(data.name)}" style="color:#5e5edd; text-decoration:underline;">📂 Zobacz kartotekę</a>
         `;
         listDiv.appendChild(div);

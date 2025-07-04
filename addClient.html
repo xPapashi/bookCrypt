@@ -83,18 +83,25 @@
     <h1>Dodaj nową wizytę</h1>
 
     <input type="datetime-local" id="date" required />
-    <input type="text" id="name" placeholder="Imię klienta" required />
+    
+    <!-- Imię klienta z podpowiedziami -->
+    <input type="text" id="name" placeholder="Imię klienta" list="clientSuggestions" required />
+    <datalist id="clientSuggestions"></datalist>
+
     <input type="text" id="service" placeholder="Usługa" required />
     <input type="number" id="amount" placeholder="Kwota (£)" required />
+    
     <select id="payment">
       <option value="gotowka">Gotówka</option>
       <option value="karta">Karta</option>
     </select>
+    
     <div style="display: flex;">
       <label>
         <input type="checkbox" id="paid" /> Zapłacono
       </label>
     </div>
+    
     <button onclick="saveVisit()">Zapisz wizytę</button>
     <button onclick="location.href='index.html'">Wróć do panelu</button>
   </div>
@@ -109,10 +116,40 @@
       return CryptoJS.AES.encrypt(JSON.stringify(data), encryptionKey).toString();
     }
 
+    function decryptData(cipherText) {
+      try {
+        const bytes = CryptoJS.AES.decrypt(cipherText, encryptionKey);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      } catch {
+        return null;
+      }
+    }
+
+    function getUniqueClients() {
+      const visits = JSON.parse(localStorage.getItem("visits") || "[]");
+      const names = new Set();
+      visits.forEach(cipher => {
+        const data = decryptData(cipher);
+        if (data && data.name) names.add(data.name.trim());
+      });
+      return Array.from(names);
+    }
+
+    function populateClientSuggestions() {
+      const datalist = document.getElementById("clientSuggestions");
+      const names = getUniqueClients();
+      datalist.innerHTML = "";
+      names.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        datalist.appendChild(option);
+      });
+    }
+
     function saveVisit() {
       const visit = {
         date: document.getElementById("date").value,
-        name: document.getElementById("name").value,
+        name: document.getElementById("name").value.trim(),
         service: document.getElementById("service").value,
         amount: document.getElementById("amount").value,
         payment: document.getElementById("payment").value,
@@ -128,7 +165,7 @@
       visits.push(encryptData(visit));
       localStorage.setItem("visits", JSON.stringify(visits));
 
-      // Clear form
+      // Czyszczenie formularza
       document.getElementById("date").value = "";
       document.getElementById("name").value = "";
       document.getElementById("service").value = "";
@@ -139,6 +176,8 @@
       alert("Wizyta zapisana!");
       location.href = "index.html";
     }
+
+    document.addEventListener("DOMContentLoaded", populateClientSuggestions);
   </script>
 </body>
 </html>
