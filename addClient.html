@@ -48,10 +48,6 @@
       font-size: 0.95rem;
     }
 
-    label input[type="checkbox"] {
-      margin-right: 0.5rem;
-    }
-
     button {
       width: 100%;
       padding: 0.75rem;
@@ -121,6 +117,54 @@
     #tagSuggestions li:hover {
       background: #d6e3ff;
     }
+
+    /* Slider toggle */
+    .toggle-paid {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .toggle-paid input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background-color: #ccc;
+      border-radius: 24px;
+      transition: background-color 0.4s;
+    }
+
+    .slider:before {
+      content: "";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.4s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    input:checked + .slider {
+      background-color: #a26ff3;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    .toggle-paid-text {
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -131,7 +175,6 @@
     <input type="text" id="name" placeholder="Imię klienta" list="clientSuggestions" required />
     <datalist id="clientSuggestions"></datalist>
 
-    <!-- Tagi -->
     <div class="tag-container">
       <div id="selectedTags" class="tags"></div>
       <input type="text" id="tagInput" placeholder="Dodaj tag i naciśnij Enter..." />
@@ -145,7 +188,12 @@
       <option value="karta">Karta</option>
     </select>
 
-    <label><input type="checkbox" id="paid" /> Zapłacono</label>
+    <!-- Slider zamiast checkboxa -->
+    <label class="toggle-paid" style="margin-bottom: 1rem;">
+      <span class="toggle-paid-text">Zapłacono</span>
+      <input type="checkbox" id="paid">
+      <span class="slider"></span>
+    </label>
 
     <button onclick="saveVisit()">Zapisz wizytę</button>
     <button onclick="location.href='index.html'">Wróć do panelu</button>
@@ -284,7 +332,6 @@
       visits.push(encryptData(visit));
       localStorage.setItem("visits", JSON.stringify(visits));
 
-      // Reset
       document.getElementById("date").value = "";
       document.getElementById("name").value = "";
       document.getElementById("tagInput").value = "";
