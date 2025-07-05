@@ -201,24 +201,6 @@
       background: #4e4ed9;
     }
 
-    .remove-btn {
-      position: absolute;
-      bottom: 1rem;
-      right: 1.5rem;
-      background: var(--red-color);
-      color: white;
-      border: none;
-      padding: 0.4rem 0.8rem;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .remove-btn:hover {
-      background: #d32f2f;
-    }
-
     @media (min-width: 400px) {
       body {
         padding: 1.5rem;
@@ -243,7 +225,8 @@
 
   <script>
     const SECRET_KEY = "your-secret-key";
-    const encryptionKey = sessionStorage.getItem("key") || SECRET_KEY;
+    const encryptionKey = sessionStorage.getItem("key");
+    if (!encryptionKey) location.href = "login.html";
 
     function encryptData(data) {
       return CryptoJS.AES.encrypt(JSON.stringify(data), encryptionKey).toString();
@@ -268,13 +251,6 @@
         localStorage.setItem("visits", JSON.stringify(visits));
         loadClients();
       }
-    }
-
-    function removeClient(index) {
-      let visits = JSON.parse(localStorage.getItem("visits") || "[]");
-      visits.splice(index, 1);
-      localStorage.setItem("visits", JSON.stringify(visits));
-      loadClients();
     }
 
     function loadClients() {
@@ -317,7 +293,6 @@
             <input type="checkbox" ${data.paid ? "checked" : ""} onchange="togglePaid(${index})">
             <span class="slider"></span>
           </label>
-          <button class="remove-btn" onclick="removeClient(${index})">Usuń</button>
           <a href="clientDetails.html?name=${encodeURIComponent(data.name)}" style="color:#5e5edd; text-decoration:underline;">📂 Zobacz kartotekę</a>
         `;
         listDiv.appendChild(div);
