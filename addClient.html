@@ -6,17 +6,9 @@
   <title>Dodaj wizytę – Wizyty Klientów</title>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
   <style>
-    :root {
-      --primary-color: #a26ff3;
-      --accent-color: #f559a9;
-      --bg-color: #f8f9fd;
-      --card-bg: white;
-      --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+      background: linear-gradient(135deg, #a26ff3, #f559a9);
       margin: 0;
       padding: 1rem;
       display: flex;
@@ -26,17 +18,17 @@
     }
 
     .card {
-      background: var(--card-bg);
+      background: white;
       padding: 2rem;
       border-radius: 1.5rem;
-      box-shadow: var(--shadow);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       width: 100%;
       max-width: 400px;
     }
 
     .card h1 {
       text-align: center;
-      color: var(--primary-color);
+      color: #a26ff3;
       margin-bottom: 1.5rem;
       font-size: 1.4rem;
     }
@@ -63,7 +55,7 @@
     button {
       width: 100%;
       padding: 0.75rem;
-      background-color: var(--primary-color);
+      background-color: #a26ff3;
       border: none;
       border-radius: 0.75rem;
       color: white;
@@ -76,6 +68,59 @@
     button:hover {
       background-color: #7c4fe0;
     }
+
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      border: 1px solid #3399ff;
+      border-radius: 0.75rem;
+      margin-bottom: 1rem;
+      background: white;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tag {
+      color: white;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .tag span {
+      margin-left: 0.5rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #tagSuggestions {
+      list-style: none;
+      padding-left: 0;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    #tagSuggestions li {
+      background: #eef4ff;
+      padding: 0.4rem 0.75rem;
+      margin-bottom: 4px;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+
+    #tagSuggestions li:hover {
+      background: #d6e3ff;
+    }
   </style>
 </head>
 <body>
@@ -83,34 +128,32 @@
     <h1>Dodaj nową wizytę</h1>
 
     <input type="datetime-local" id="date" required />
-    
-    <!-- Imię klienta z podpowiedziami -->
     <input type="text" id="name" placeholder="Imię klienta" list="clientSuggestions" required />
     <datalist id="clientSuggestions"></datalist>
 
-    <input type="text" id="service" placeholder="Usługa" required />
+    <!-- Tagi -->
+    <div class="tag-container">
+      <div id="selectedTags" class="tags"></div>
+      <input type="text" id="tagInput" placeholder="Dodaj tag i naciśnij Enter..." />
+    </div>
+    <ul id="tagSuggestions"></ul>
+    <input type="hidden" id="service" required />
+
     <input type="number" id="amount" placeholder="Kwota (£)" required />
-    
     <select id="payment">
       <option value="gotowka">Gotówka</option>
       <option value="karta">Karta</option>
     </select>
-    
-    <div style="display: flex;">
-      <label>
-        <input type="checkbox" id="paid" /> Zapłacono
-      </label>
-    </div>
-    
+
+    <label><input type="checkbox" id="paid" /> Zapłacono</label>
+
     <button onclick="saveVisit()">Zapisz wizytę</button>
     <button onclick="location.href='index.html'">Wróć do panelu</button>
   </div>
 
   <script>
     const encryptionKey = sessionStorage.getItem("key");
-    if (!encryptionKey) {
-      location.href = "login.html";
-    }
+    if (!encryptionKey) location.href = "login.html";
 
     function encryptData(data) {
       return CryptoJS.AES.encrypt(JSON.stringify(data), encryptionKey).toString();
@@ -146,6 +189,82 @@
       });
     }
 
+    let selectedTagList = [];
+
+    function renderSelectedTags() {
+      const tagContainer = document.getElementById("selectedTags");
+      tagContainer.innerHTML = "";
+
+      const stored = localStorage.getItem("tags");
+      const tagDefs = stored ? JSON.parse(stored) : [];
+
+      selectedTagList.forEach((tag, i) => {
+        const tagEl = document.createElement("div");
+        tagEl.className = "tag";
+        const tagDef = tagDefs.find(t => t.label === tag);
+        tagEl.style.backgroundColor = tagDef?.color || "#3399ff";
+        tagEl.innerHTML = `${tag}<span onclick="removeTag(${i})">&times;</span>`;
+        tagContainer.appendChild(tagEl);
+      });
+
+      document.getElementById("service").value = selectedTagList.join(", ");
+    }
+
+    function removeTag(index) {
+      selectedTagList.splice(index, 1);
+      renderSelectedTags();
+    }
+
+    function addTag(tag) {
+      tag = tag.trim();
+      if (tag && !selectedTagList.includes(tag)) {
+        selectedTagList.push(tag);
+        renderSelectedTags();
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      populateClientSuggestions();
+      const input = document.getElementById("tagInput");
+      const suggestions = document.getElementById("tagSuggestions");
+
+      input.addEventListener("input", () => {
+        const query = input.value.trim().toLowerCase();
+        suggestions.innerHTML = "";
+        if (!query) return;
+
+        const stored = localStorage.getItem("tags");
+        if (!stored) return;
+
+        const tags = JSON.parse(stored);
+        const matches = tags.filter(tag =>
+          tag.label.toLowerCase().includes(query) && !selectedTagList.includes(tag.label)
+        );
+
+        matches.forEach(tag => {
+          const li = document.createElement("li");
+          li.textContent = tag.label;
+          li.onclick = () => {
+            addTag(tag.label);
+            input.value = "";
+            suggestions.innerHTML = "";
+          };
+          suggestions.appendChild(li);
+        });
+      });
+
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (input.value.trim()) {
+            addTag(input.value);
+            input.value = "";
+            suggestions.innerHTML = "";
+          }
+        }
+      });
+    });
+
     function saveVisit() {
       const visit = {
         date: document.getElementById("date").value,
@@ -165,19 +284,19 @@
       visits.push(encryptData(visit));
       localStorage.setItem("visits", JSON.stringify(visits));
 
-      // Czyszczenie formularza
+      // Reset
       document.getElementById("date").value = "";
       document.getElementById("name").value = "";
-      document.getElementById("service").value = "";
+      document.getElementById("tagInput").value = "";
       document.getElementById("amount").value = "";
       document.getElementById("payment").value = "gotowka";
       document.getElementById("paid").checked = false;
+      selectedTagList = [];
+      renderSelectedTags();
 
       alert("Wizyta zapisana!");
       location.href = "index.html";
     }
-
-    document.addEventListener("DOMContentLoaded", populateClientSuggestions);
   </script>
 </body>
 </html>

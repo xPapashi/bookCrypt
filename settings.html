@@ -13,13 +13,11 @@
       padding: 2rem;
       background: #f9fbff;
     }
-
     h1 {
       text-align: center;
       color: #5e5edd;
       margin-bottom: 2rem;
     }
-
     .btn {
       display: block;
       width: 100%;
@@ -34,39 +32,107 @@
       cursor: pointer;
       transition: background 0.3s ease;
     }
-
     .btn:hover {
       background-color: #4e4ed9;
     }
-
-    select {
+    select, input[type="text"], input[type="color"] {
       font-size: 1rem;
       padding: 0.5rem;
-      margin: 0.25rem;
       border-radius: 10px;
       border: 1px solid #ccc;
     }
-
-    #importFile {
-      display: none;
-    }
-
     .back {
       text-align: center;
       margin-top: 3rem;
     }
-
     .back a {
       text-decoration: none;
       color: #5e5edd;
+    }
+
+    /* NOWOCZESNE STYLE TAGÓW */
+    .tag-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      margin-bottom: 1rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tag-card input[type="text"] {
+      flex: 2;
+      border: none;
+      background: transparent;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .tag-card input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 8px;
+    }
+
+    .tag-card button {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .tag-card button:hover {
+      transform: scale(1.2);
+    }
+
+    #tagForm {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      justify-content: center;
+    }
+
+    #tagForm input[type="text"] {
+      flex: 2;
+      padding: 0.75rem;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+    #tagForm input[type="color"] {
+      flex: 1;
+      height: 48px;
+      border: none;
+      border-radius: 10px;
+    }
+
+    #tagForm button {
+      flex: 1;
+      background-color: #5e5edd;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    #tagForm button:hover {
+      background-color: #4e4ed9;
     }
   </style>
 </head>
 <body>
   <h1>⚙️ Ustawienia</h1>
-
   <button class="btn" onclick="exportDatabase()">📤 Eksportuj bazę danych</button>
-  <input type="file" id="importFile" accept=".json" onchange="importDatabase(event)" />
+  <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importDatabase(event)" />
   <button class="btn" onclick="document.getElementById('importFile').click()">📥 Importuj bazę danych</button>
 
   <h2 style="text-align:center; margin-top:3rem;">📄 Podsumowanie roczne (PDF)</h2>
@@ -74,6 +140,15 @@
     <select id="pdfYear"></select>
   </div>
   <button class="btn" onclick="generatePDF()">📄 Pobierz podsumowanie PDF</button>
+
+  <h2 style="text-align:center; margin-top:3rem;">🏷️ Ulubione tagi usług</h2>
+  <div id="tagsList" style="max-width: 500px; margin: auto;"></div>
+
+  <div id="tagForm" style="max-width: 500px; margin: auto;">
+    <input type="text" id="newTagLabel" placeholder="Nazwa tagu" />
+    <input type="color" id="newTagColor" value="#a26ff3" />
+    <button onclick="addNewTag()">➕ Dodaj</button>
+  </div>
 
   <div class="back">
     <a href="index.html">← Powrót do panelu</a>
@@ -99,7 +174,6 @@
     function importDatabase(event) {
       const file = event.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function (e) {
         try {
@@ -131,50 +205,86 @@
     async function generatePDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-
       const year = parseInt(document.getElementById("pdfYear").value);
       const visits = JSON.parse(localStorage.getItem("visits") || "[]");
       const key = sessionStorage.getItem("key");
-      if (!key) {
-        alert("Brak klucza szyfrowania");
-        return;
-      }
+      if (!key) return alert("Brak klucza szyfrowania");
 
-      let taxYearTotal = 0;
-
-      function decryptData(cipher) {
-        try {
-          const bytes = CryptoJS.AES.decrypt(cipher, key);
-          return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-        } catch {
-          return null;
-        }
-      }
-
-      const startOfTaxYear = new Date(`${year}-04-06`);
-      const endOfTaxYear = new Date(`${year + 1}-04-05`);
+      let total = 0;
+      const start = new Date(`${year}-04-06`);
+      const end = new Date(`${year + 1}-04-05`);
 
       visits.forEach(c => {
-        const data = decryptData(c);
+        const data = JSON.parse(CryptoJS.AES.decrypt(c, key).toString(CryptoJS.enc.Utf8));
         if (data && data.paid) {
           const d = new Date(data.date);
           const amt = parseFloat(data.amount);
-          if (d >= startOfTaxYear && d <= endOfTaxYear) {
-            taxYearTotal += amt;
-          }
+          if (d >= start && d <= end) total += amt;
         }
       });
 
-      doc.setFontSize(16);
       doc.text("Podsumowanie roczne - Gorgeous Eyes", 20, 20);
-      doc.setFontSize(12);
       doc.text(`Zakres: 6 kwietnia ${year} – 5 kwietnia ${year + 1}`, 20, 35);
-      doc.text(`Łączny dochód: £${taxYearTotal.toFixed(2)}`, 20, 50);
-
+      doc.text(`Łączny dochód: £${total.toFixed(2)}`, 20, 50);
       doc.save(`podsumowanie_${year}_do_${year + 1}.pdf`);
     }
 
-    populateYearDropdown();
+    function renderTagsSettings() {
+      const tags = JSON.parse(localStorage.getItem("tags") || "[]");
+      const list = document.getElementById("tagsList");
+      list.innerHTML = "";
+      tags.forEach((tag, index) => {
+        const row = document.createElement("div");
+        row.className = "tag-card";
+
+        const label = document.createElement("input");
+        label.value = tag.label;
+        label.type = "text";
+
+        const color = document.createElement("input");
+        color.type = "color";
+        color.value = tag.color || "#cccccc";
+
+        const saveBtn = document.createElement("button");
+        saveBtn.textContent = "💾";
+        saveBtn.onclick = () => {
+          tag.label = label.value.trim();
+          tag.color = color.value;
+          localStorage.setItem("tags", JSON.stringify(tags));
+          renderTagsSettings();
+        };
+
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "🗑️";
+        delBtn.onclick = () => {
+          tags.splice(index, 1);
+          localStorage.setItem("tags", JSON.stringify(tags));
+          renderTagsSettings();
+        };
+
+        row.appendChild(label);
+        row.appendChild(color);
+        row.appendChild(saveBtn);
+        row.appendChild(delBtn);
+        list.appendChild(row);
+      });
+    }
+
+    function addNewTag() {
+      const label = document.getElementById("newTagLabel").value.trim();
+      const color = document.getElementById("newTagColor").value;
+      if (!label) return alert("Wprowadź nazwę tagu!");
+      const tags = JSON.parse(localStorage.getItem("tags") || "[]");
+      tags.push({ label, color });
+      localStorage.setItem("tags", JSON.stringify(tags));
+      document.getElementById("newTagLabel").value = "";
+      renderTagsSettings();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      populateYearDropdown();
+      renderTagsSettings();
+    });
   </script>
 </body>
 </html>

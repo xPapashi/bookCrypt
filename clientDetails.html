@@ -1,317 +1,396 @@
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-  <meta charset="UTF-8" />
-  <title>Kartoteka klienta</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Font and SweetAlert2 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <style>
-    :root {
-      --primary-color: #5e5edd;
-      --accent-color: #FFC107;
-      --background-color: #f4f7fe;
-      --card-background: #ffffff;
-      --text-color: #333;
-      --light-text-color: #666;
-      --border-color: #e0e0e0;
-      --shadow-color: rgba(0, 0, 0, 0.05);
-      --red-color: #f44336;
-    }
-
-    body {
-      font-family: 'Roboto', sans-serif;
-      max-width: 700px;
-      margin: auto;
-      padding: 1.5rem;
-      background-color: var(--background-color);
-      color: var(--text-color);
-      line-height: 1.6;
-      box-sizing: border-box;
-    }
-
-    h1 {
-      font-family: 'Montserrat', sans-serif;
-      color: var(--primary-color);
-      text-align: center;
-      margin-bottom: 2rem;
-      font-size: 1.8rem;
-    }
-
-    .entry {
-      background: linear-gradient(135deg, #ffffff, #f0f4ff);
-      padding: 1.5rem;
-      margin-bottom: 1rem;
-      border-radius: 20px;
-      box-shadow: 0 4px 12px var(--shadow-color);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .entry strong {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.2rem;
-      color: var(--primary-color);
-    }
-
-    .entry span {
-      color: var(--light-text-color);
-      font-size: 0.95rem;
-    }
-
-    .amount {
-      font-weight: bold;
-      color: var(--text-color);
-    }
-
-    .toggle-paid {
-      position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-    }
-
-    .toggle-paid input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: relative;
-      width: 44px;
-      height: 24px;
-      background-color: var(--border-color);
-      border-radius: 24px;
-      transition: background-color 0.4s;
-    }
-
-    .slider:before {
-      content: "";
-      position: absolute;
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      border-radius: 50%;
-      transition: transform 0.4s;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    input:checked + .slider {
-      background-color: var(--primary-color);
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-
-    .toggle-paid-text {
-      font-size: 0.9rem;
-      color: var(--light-text-color);
-      margin-right: 0.5rem;
-    }
-
-    .entry.not-paid {
-      border: 1px solid var(--red-color);
-      background: linear-gradient(135deg, #fffafa, #ffebeb);
-    }
-
-    .entry.not-paid strong {
-      color: var(--red-color);
-    }
-
-    .entry.not-paid .slider {
-      background-color: var(--red-color);
-    }
-
-    .note-box {
-      background: #f0f0f5;
-      padding: 0.6rem;
-      border-left: 4px solid var(--primary-color);
-      border-radius: 8px;
-      margin-top: 0.5rem;
-      font-style: italic;
-      font-size: 0.95rem;
-    }
-
-    .note-meta {
-      font-size: 0.75rem;
-      color: #888;
-      margin-top: 0.3rem;
-    }
-
-    .button-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 0.75rem;
-      margin-top: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .button-row button {
-      flex: 1;
-      min-width: 45%;
-      padding: 0.6rem 1rem;
-      font-size: 0.95rem;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-
-    .edit-note-btn {
-      background: var(--primary-color);
-      color: #fff;
-    }
-
-    .remove-btn {
-      background: var(--red-color);
-      color: white;
-    }
-
-    .edit-note-btn:hover {
-      background: #4e4ed9;
-    }
-
-    .remove-btn:hover {
-      background: #d32f2f;
-    }
-
-    .back-btn {
-      display: block;
-      margin: 2rem auto 1rem;
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 12px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <h1 id="clientName">Kartoteka klienta</h1>
-  <div id="visitsContainer"></div>
-  <button class="back-btn" onclick="history.back()">⬅️ Powrót</button>
-
-  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
-  <script>
-    const encryptionKey = sessionStorage.getItem("key");
-    if (!encryptionKey) location.href = "login.html";
-
-    function decryptData(cipherText) {
-      try {
-        const bytes = CryptoJS.AES.decrypt(cipherText, encryptionKey);
-        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-      } catch {
-        return null;
-      }
-    }
-
-    function encryptData(data) {
-      return CryptoJS.AES.encrypt(JSON.stringify(data), encryptionKey).toString();
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const name = params.get("name") || "";
-    document.getElementById("clientName").textContent = `Kartoteka klienta: ${name}`;
-
-    function loadVisits() {
-      const allVisits = JSON.parse(localStorage.getItem("visits") || "[]");
-      const decrypted = allVisits.map(decryptData);
-      const visits = decrypted.map((v, i) => ({ ...v, index: i })).filter(v => v.name === name);
-
-      const container = document.getElementById("visitsContainer");
-      container.innerHTML = "";
-
-      if (visits.length === 0) {
-        container.innerHTML = "<p style='text-align:center;'>Brak wizyt dla tego klienta.</p>";
-        return;
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kartoteka klienta</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Font and SweetAlert2 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      :root {
+        --primary-color: #5e5edd;
+        --accent-color: #ffc107;
+        --background-color: #f4f7fe;
+        --card-background: #ffffff;
+        --text-color: #333;
+        --light-text-color: #666;
+        --border-color: #e0e0e0;
+        --shadow-color: rgba(0, 0, 0, 0.05);
+        --red-color: #f44336;
       }
 
-      visits.forEach(visit => {
-        const entry = document.createElement("div");
-        entry.className = `entry ${!visit.paid ? "not-paid" : ""}`;
-        entry.innerHTML = `
+      body {
+        font-family: "Roboto", sans-serif;
+        max-width: 700px;
+        margin: auto;
+        padding: 1.5rem;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        box-sizing: border-box;
+      }
+
+      h1 {
+        font-family: "Montserrat", sans-serif;
+        color: var(--primary-color);
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 1.8rem;
+      }
+
+      .entry {
+        background: linear-gradient(135deg, #ffffff, #f0f4ff);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px var(--shadow-color);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .entry strong {
+        font-family: "Montserrat", sans-serif;
+        font-size: 1.2rem;
+        color: var(--primary-color);
+      }
+
+      .entry span {
+        color: var(--light-text-color);
+        font-size: 0.95rem;
+      }
+
+      .amount {
+        font-weight: bold;
+        color: var(--text-color);
+      }
+
+      .toggle-paid {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      .toggle-paid input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        background-color: var(--border-color);
+        border-radius: 24px;
+        transition: background-color 0.4s;
+      }
+
+      .slider:before {
+        content: "";
+        position: absolute;
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        border-radius: 50%;
+        transition: transform 0.4s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      input:checked + .slider {
+        background-color: var(--primary-color);
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+
+      .toggle-paid-text {
+        font-size: 0.9rem;
+        color: var(--light-text-color);
+        margin-right: 0.5rem;
+      }
+
+      .entry.not-paid {
+        border: 1px solid var(--red-color);
+        background: linear-gradient(135deg, #fffafa, #ffebeb);
+      }
+
+      .entry.not-paid strong {
+        color: var(--red-color);
+      }
+
+      .entry.not-paid .slider {
+        background-color: var(--red-color);
+      }
+
+      .note-box {
+        background: #f0f0f5;
+        padding: 0.6rem;
+        border-left: 4px solid var(--primary-color);
+        border-radius: 8px;
+        margin-top: 0.5rem;
+        font-style: italic;
+        font-size: 0.95rem;
+      }
+
+      .note-meta {
+        font-size: 0.75rem;
+        color: #888;
+        margin-top: 0.3rem;
+      }
+
+      .button-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .button-row button {
+        flex: 1;
+        min-width: 45%;
+        padding: 0.6rem 1rem;
+        font-size: 0.95rem;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+
+      .edit-note-btn {
+        background: var(--primary-color);
+        color: #fff;
+      }
+
+      .remove-btn {
+        background: var(--red-color);
+        color: white;
+      }
+
+      .edit-note-btn:hover {
+        background: #4e4ed9;
+      }
+
+      .remove-btn:hover {
+        background: #d32f2f;
+      }
+
+      .back-btn {
+        display: block;
+        margin: 2rem auto 1rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 12px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="clientName">Kartoteka klienta</h1>
+    <div id="visitsContainer"></div>
+    <button class="back-btn" onclick="history.back()">⬅️ Powrót</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <script>
+      const encryptionKey = sessionStorage.getItem("key");
+      if (!encryptionKey) location.href = "login.html";
+
+      function decryptData(cipherText) {
+        try {
+          const bytes = CryptoJS.AES.decrypt(cipherText, encryptionKey);
+          return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        } catch {
+          return null;
+        }
+      }
+
+      function encryptData(data) {
+        return CryptoJS.AES.encrypt(
+          JSON.stringify(data),
+          encryptionKey
+        ).toString();
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get("name") || "";
+      document.getElementById(
+        "clientName"
+      ).textContent = `Kartoteka klienta: ${name}`;
+
+      function loadVisits() {
+        const allVisits = JSON.parse(localStorage.getItem("visits") || "[]");
+        const decrypted = allVisits.map(decryptData);
+        const visits = decrypted
+          .map((v, i) => ({ ...v, index: i }))
+          .filter((v) => v.name === name);
+
+        const container = document.getElementById("visitsContainer");
+        container.innerHTML = "";
+
+        if (visits.length === 0) {
+          container.innerHTML =
+            "<p style='text-align:center;'>Brak wizyt dla tego klienta.</p>";
+          return;
+        }
+
+        visits.forEach((visit) => {
+          const entry = document.createElement("div");
+          entry.className = `entry ${!visit.paid ? "not-paid" : ""}`;
+          entry.innerHTML = `
           <strong>${visit.name}</strong>
           <span>📅 ${visit.date}</span>
           <span>💇‍♀️ ${visit.service}</span>
           <span class="amount">💰 ${visit.amount} £</span>
           <span>💳 ${visit.payment}</span>
           <label class="toggle-paid">
-            <span class="toggle-paid-text">${visit.paid ? "Opłacone" : "Nieopłacone"}</span>
-            <input type="checkbox" ${visit.paid ? "checked" : ""} onchange="togglePaid(${visit.index})">
+            <span class="toggle-paid-text">${
+              visit.paid ? "Opłacone" : "Nieopłacone"
+            }</span>
+            <input type="checkbox" ${
+              visit.paid ? "checked" : ""
+            } onchange="togglePaid(${visit.index})">
             <span class="slider"></span>
           </label>
-          ${visit.note ? `<div class="note-box">📝 ${visit.note}<div class="note-meta">Dodano: ${visit.noteDate || ""}</div></div>` : "<div class='note-meta'>Brak notatki</div>"}
+          ${
+            visit.note
+              ? `<div class="note-box">📝 ${
+                  visit.note
+                }<div class="note-meta">Dodano: ${
+                  visit.noteDate || ""
+                }</div></div>`
+              : "<div class='note-meta'>Brak notatki</div>"
+          }
           <div class="button-row">
-            <button class="edit-note-btn" onclick="editNote(${visit.index})">📝 Notatka</button>
-            <button class="remove-btn" onclick="removeVisit(${visit.index})">🗑️ Usuń</button>
+            <button class="edit-note-btn" onclick="editNote(${
+              visit.index
+            })">📝 Notatka</button>
+            <button class="edit-note-btn" onclick="editVisit(${
+              visit.index
+            })">✏️ Edytuj</button>
+            <button class="remove-btn" onclick="removeVisit(${
+              visit.index
+            })">🗑️ Usuń</button>
           </div>
         `;
-        container.appendChild(entry);
-      });
-    }
-
-    function togglePaid(index) {
-      let visits = JSON.parse(localStorage.getItem("visits") || "[]");
-      const data = decryptData(visits[index]);
-      if (data) {
-        data.paid = !data.paid;
-        visits[index] = encryptData(data);
-        localStorage.setItem("visits", JSON.stringify(visits));
-        loadVisits();
+          container.appendChild(entry);
+        });
       }
-    }
 
-    function removeVisit(index) {
-      let visits = JSON.parse(localStorage.getItem("visits") || "[]");
-      visits.splice(index, 1);
-      localStorage.setItem("visits", JSON.stringify(visits));
-      loadVisits();
-    }
-
-    function editNote(index) {
-      const visits = JSON.parse(localStorage.getItem("visits") || "[]");
-      const data = decryptData(visits[index]);
-      if (!data) return;
-
-      Swal.fire({
-        title: `Notatka dla ${data.name}`,
-        input: 'textarea',
-        inputLabel: 'Treść notatki',
-        inputValue: data.note || '',
-        showCancelButton: true,
-        confirmButtonText: '💾 Zapisz',
-        cancelButtonText: '❌ Anuluj',
-        showDenyButton: data.note ? true : false,
-        denyButtonText: '🗑️ Usuń notatkę',
-        preConfirm: (note) => note.trim()
-      }).then(result => {
-        if (result.isConfirmed) {
-          data.note = result.value;
-          data.noteDate = new Date().toLocaleString();
-          visits[index] = encryptData(data);
-          localStorage.setItem("visits", JSON.stringify(visits));
-          loadVisits();
-        } else if (result.isDenied) {
-          delete data.note;
-          delete data.noteDate;
+      function togglePaid(index) {
+        let visits = JSON.parse(localStorage.getItem("visits") || "[]");
+        const data = decryptData(visits[index]);
+        if (data) {
+          data.paid = !data.paid;
           visits[index] = encryptData(data);
           localStorage.setItem("visits", JSON.stringify(visits));
           loadVisits();
         }
-      });
-    }
+      }
 
-    loadVisits();
-  </script>
-</body>
+      function removeVisit(index) {
+        let visits = JSON.parse(localStorage.getItem("visits") || "[]");
+        visits.splice(index, 1);
+        localStorage.setItem("visits", JSON.stringify(visits));
+        loadVisits();
+      }
+
+      function editNote(index) {
+        const visits = JSON.parse(localStorage.getItem("visits") || "[]");
+        const data = decryptData(visits[index]);
+        if (!data) return;
+
+        Swal.fire({
+          title: `Notatka dla ${data.name}`,
+          input: "textarea",
+          inputLabel: "Treść notatki",
+          inputValue: data.note || "",
+          showCancelButton: true,
+          confirmButtonText: "💾 Zapisz",
+          cancelButtonText: "❌ Anuluj",
+          showDenyButton: data.note ? true : false,
+          denyButtonText: "🗑️ Usuń notatkę",
+          preConfirm: (note) => note.trim(),
+        }).then((result) => {
+          if (result.isConfirmed) {
+            data.note = result.value;
+            data.noteDate = new Date().toLocaleString();
+            visits[index] = encryptData(data);
+            localStorage.setItem("visits", JSON.stringify(visits));
+            loadVisits();
+          } else if (result.isDenied) {
+            delete data.note;
+            delete data.noteDate;
+            visits[index] = encryptData(data);
+            localStorage.setItem("visits", JSON.stringify(visits));
+            loadVisits();
+          }
+        });
+      }
+
+      function editVisit(index) {
+        const visits = JSON.parse(localStorage.getItem("visits") || "[]");
+        const data = decryptData(visits[index]);
+        if (!data) return;
+
+        Swal.fire({
+          title: `Edytuj wizytę`,
+          html:
+            `<input id="swal-name" class="swal2-input" placeholder="Imię" value="${data.name}">` +
+            `<input id="swal-service" class="swal2-input" placeholder="Usługa" value="${data.service}">` +
+            `<input id="swal-amount" class="swal2-input" placeholder="Kwota" value="${data.amount}" type="number">` +
+            `<select id="swal-payment" class="swal2-input">
+         <option value="Karta" ${
+           data.payment === "Karta" ? "selected" : ""
+         }>Karta</option>
+         <option value="Gotówka" ${
+           data.payment === "Gotówka" ? "selected" : ""
+         }>Gotówka</option>
+       </select>`,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: "💾 Zapisz",
+          cancelButtonText: "❌ Anuluj",
+          preConfirm: () => {
+            const updated = {
+              name: document.getElementById("swal-name").value.trim(),
+              service: document.getElementById("swal-service").value.trim(),
+              amount: parseFloat(document.getElementById("swal-amount").value),
+              payment: document.getElementById("swal-payment").value,
+            };
+            if (!updated.name || !updated.service || isNaN(updated.amount)) {
+              Swal.showValidationMessage(
+                "Wszystkie pola muszą być poprawnie wypełnione"
+              );
+              return false;
+            }
+            return updated;
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const updated = result.value;
+            Object.assign(data, updated);
+            visits[index] = encryptData(data);
+            localStorage.setItem("visits", JSON.stringify(visits));
+            loadVisits();
+          }
+        });
+      }
+
+      loadVisits();
+    </script>
+  </body>
 </html>
