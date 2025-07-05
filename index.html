@@ -5,14 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel główny – Wizyty Klientów</title>
 
-  <!-- Font & Icons -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
 
   <style>
@@ -41,19 +35,17 @@
     }
 
     .filters select {
-      flex: 1;
       padding: 0.6rem;
       border-radius: 10px;
       border: 1px solid #ccc;
       font-size: 1rem;
-      background: #fff;
       max-width: 200px;
     }
 
-    .summary-cards {
-      display: flex;
-      flex-direction: column;
+    .card-grid {
+      display: grid;
       gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       margin-bottom: 2rem;
     }
 
@@ -61,27 +53,26 @@
       background: linear-gradient(135deg, #ffffff, #f0f4ff);
       border-radius: 20px;
       padding: 1rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       text-align: center;
-      transition: all 0.3s ease;
     }
 
     .card h2 {
-      font-size: 1.2rem;
-      margin: 0.25rem 0;
+      font-size: 1.1rem;
+      margin: 0.5rem 0;
     }
 
     .card p {
-      margin: 0;
       font-weight: bold;
-      font-size: 1.4rem;
+      font-size: 1.5rem;
+      margin: 0;
     }
 
     .chart-wrapper {
       padding: 1rem;
       background: #ffffff;
       border-radius: 20px;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
@@ -90,19 +81,67 @@
       max-height: 300px;
     }
 
-    @media (min-width: 600px) {
-      .summary-cards {
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
-
-      .card {
-        flex: 1;
-        min-width: 180px;
-      }
+    .summary-section {
+      margin: 2rem 0;
+      text-align: center;
     }
 
-    /* === Bottom Mobile Navigation === */
+    .toggle-btn {
+      background: linear-gradient(135deg, #a26ff3, #f559a9);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+
+    .toggle-btn:hover {
+      background: linear-gradient(135deg, #8d5ee0, #dd4795);
+    }
+
+    .summary-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1rem;
+      padding: 0 1rem;
+    }
+
+    .summary-card {
+      border-radius: 20px;
+      padding: 1rem;
+      color: white;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .summary-card h4 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .summary-card p {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin: 0.5rem 0 0;
+    }
+
+    .summary-card.orange {
+      background: linear-gradient(135deg, #ff9a44, #ff6363);
+    }
+
+    .summary-card.blue {
+      background: linear-gradient(135deg, #42a5f5, #478ed1);
+    }
+
+    .summary-hidden {
+      display: none;
+    }
+
+    /* Mobile Navigation */
     .mobile-nav {
       position: fixed;
       bottom: 0;
@@ -147,12 +186,12 @@
       color: #4a4adb;
     }
 
-    /* === Desktop Hamburger Nav (visible on wider screens) === */
+    /* Desktop Navigation */
     .hamburger-nav {
       display: none;
     }
 
-    @media (min-width: 768px) {
+    @media(min-width: 768px) {
       .hamburger-nav {
         display: flex;
         gap: 1rem;
@@ -184,11 +223,9 @@
     }
   </style>
 </head>
-
 <body>
   <h1>📊 Panel Wizyt Klientów</h1>
 
-  <!-- Hamburger Menu for Desktop -->
   <div class="hamburger-nav">
     <a href="addClient.html" class="nav-link">Dodaj wizytę</a>
     <a href="clients.html" class="nav-link">Klienci</a>
@@ -201,43 +238,40 @@
     <select id="yearFilter" onchange="renderSummary()"></select>
   </div>
 
-  <div id="summary">
-    <div class="summary-cards">
-      <div class="card">
-        <h2><i class="fas fa-users"></i> Obsłużonych klientów</h2>
-        <p id="served"></p>
-      </div>
-      <div class="card">
-        <h2><i class="fas fa-money-bill-wave"></i> Gotówka (miesiąc)</h2>
-        <p id="monthCash"></p>
-      </div>
-      <div class="card">
-        <h2><i class="fas fa-credit-card"></i> Karta (miesiąc)</h2>
-        <p id="monthCard"></p>
-      </div>
-    </div>
-    <div class="summary-cards">
-      <div class="card">
-        <h2><i class="fas fa-wallet"></i> Gotówka (rok)</h2>
-        <p id="yearCash"></p>
-      </div>
-      <div class="card">
-        <h2><i class="fas fa-credit-card-front"></i> Karta (rok)</h2>
-        <p id="yearCard"></p>
+  <div class="card-grid">
+    <div class="card"><h2>👤 Obsłużeni klienci</h2><p id="served">0</p></div>
+    <div class="card"><h2>💵 Gotówka (miesiąc)</h2><p id="monthCash">£0.00</p></div>
+    <div class="card"><h2>💳 Karta (miesiąc)</h2><p id="monthCard">£0.00</p></div>
+    <div class="card"><h2>📅 Gotówka (rok)</h2><p id="yearCash">£0.00</p></div>
+    <div class="card"><h2>📆 Karta (rok)</h2><p id="yearCard">£0.00</p></div>
+  </div>
+
+  <div class="summary-section">
+    <button class="toggle-btn" onclick="toggleSummary()">📊 Zobacz podsumowania</button>
+    <div id="summaryContent" class="summary-hidden">
+      <div class="summary-cards">
+        <div class="summary-card orange">
+          <h4>💰 Miesięcznie: Karta + Gotówka</h4>
+          <p id="monthTotal">£0.00</p>
+        </div>
+        <div class="summary-card blue">
+          <h4>📅 Rocznie: Karta + Gotówka</h4>
+          <p id="yearTotal">£0.00</p>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="chart-wrapper">
-    <h3 style="text-align:center; margin-top:0">Struktura płatności – wybrany miesiąc</h3>
+    <h3 style="text-align:center;">Struktura płatności – miesiąc</h3>
     <canvas id="monthChart"></canvas>
   </div>
+
   <div class="chart-wrapper">
-    <h3 style="text-align:center; margin-top:0">Struktura płatności – wybrany rok</h3>
+    <h3 style="text-align:center;">Struktura płatności – rok</h3>
     <canvas id="yearChart"></canvas>
   </div>
 
-  <!-- Mobile Bottom Navigation -->
   <nav class="mobile-nav">
     <a href="addClient.html" class="nav-item" id="nav-add">
       <i class="fas fa-plus-circle"></i>
@@ -265,9 +299,19 @@
       try {
         const bytes = CryptoJS.AES.decrypt(ciphertext, encryptionKey);
         return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-      } catch (e) {
+      } catch {
         return null;
       }
+    }
+
+    function logout() {
+      sessionStorage.removeItem("key");
+      location.href = "login.html";
+    }
+
+    function toggleSummary() {
+      const box = document.getElementById("summaryContent");
+      box.classList.toggle("summary-hidden");
     }
 
     function populateMonthYearFilters() {
@@ -277,10 +321,7 @@
       const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
 
-      const months = [
-        "Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec",
-        "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"
-      ];
+      const months = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
 
       months.forEach((month, index) => {
         const option = document.createElement("option");
@@ -304,9 +345,10 @@
       const selectedMonth = parseInt(document.getElementById("monthFilter").value);
       const selectedYear = parseInt(document.getElementById("yearFilter").value);
 
-      let monthCash = 0, monthCard = 0, yearCash = 0, yearCard = 0, totalServed = 0;
+      let monthCash = 0, monthCard = 0, yearCash = 0, yearCard = 0;
+      const uniqueClients = new Set();
 
-      visits.forEach((cipher) => {
+      visits.forEach(cipher => {
         const data = decryptData(cipher);
         if (data && data.paid) {
           const d = new Date(data.date);
@@ -314,23 +356,25 @@
 
           if (d.getFullYear() === selectedYear) {
             if (data.payment === "gotowka") yearCash += amt;
-            else if (data.payment === "karta") yearCard += amt;
+            if (data.payment === "karta") yearCard += amt;
 
             if (d.getMonth() === selectedMonth) {
               if (data.payment === "gotowka") monthCash += amt;
-              else if (data.payment === "karta") monthCard += amt;
+              if (data.payment === "karta") monthCard += amt;
             }
 
-            totalServed++;
+            uniqueClients.add(data.name.trim().toLowerCase());
           }
         }
       });
 
-      document.getElementById("served").textContent = totalServed;
+      document.getElementById("served").textContent = uniqueClients.size;
       document.getElementById("monthCash").textContent = `£${monthCash.toFixed(2)}`;
       document.getElementById("monthCard").textContent = `£${monthCard.toFixed(2)}`;
       document.getElementById("yearCash").textContent = `£${yearCash.toFixed(2)}`;
       document.getElementById("yearCard").textContent = `£${yearCard.toFixed(2)}`;
+      document.getElementById("monthTotal").textContent = `£${(monthCash + monthCard).toFixed(2)}`;
+      document.getElementById("yearTotal").textContent = `£${(yearCash + yearCard).toFixed(2)}`;
 
       renderCharts(monthCash, monthCard, yearCash, yearCard);
     }
@@ -352,14 +396,7 @@
             hoverOffset: 4,
           }],
         },
-        options: {
-          plugins: {
-            legend: { position: "bottom" },
-            title: { display: false },
-          },
-          responsive: true,
-          maintainAspectRatio: false,
-        },
+        options: { plugins: { legend: { position: "bottom" } } }
       });
 
       window.yearChartInstance = new Chart(yearCtx, {
@@ -372,20 +409,8 @@
             hoverOffset: 4,
           }],
         },
-        options: {
-          plugins: {
-            legend: { position: "bottom" },
-            title: { display: false },
-          },
-          responsive: true,
-          maintainAspectRatio: false,
-        },
+        options: { plugins: { legend: { position: "bottom" } } }
       });
-    }
-
-    function logout() {
-      sessionStorage.removeItem("key");
-      location.href = "login.html";
     }
 
     function highlightActiveNav() {

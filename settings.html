@@ -6,6 +6,7 @@
   <title>Ustawienia – Panel Wizyt</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -38,6 +39,14 @@
       background-color: #4e4ed9;
     }
 
+    select {
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin: 0.25rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+
     #importFile {
       display: none;
     }
@@ -59,6 +68,12 @@
   <button class="btn" onclick="exportDatabase()">📤 Eksportuj bazę danych</button>
   <input type="file" id="importFile" accept=".json" onchange="importDatabase(event)" />
   <button class="btn" onclick="document.getElementById('importFile').click()">📥 Importuj bazę danych</button>
+
+  <h2 style="text-align:center; margin-top:3rem;">📄 Podsumowanie roczne (PDF)</h2>
+  <div style="text-align:center; margin:1rem 0;">
+    <select id="pdfYear"></select>
+  </div>
+  <button class="btn" onclick="generatePDF()">📄 Pobierz podsumowanie PDF</button>
 
   <div class="back">
     <a href="index.html">← Powrót do panelu</a>
@@ -101,6 +116,65 @@
       };
       reader.readAsText(file);
     }
+
+    function populateYearDropdown() {
+      const select = document.getElementById("pdfYear");
+      const currentYear = new Date().getFullYear();
+      for (let y = currentYear; y >= currentYear - 5; y--) {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = `${y} / ${y + 1}`;
+        select.appendChild(opt);
+      }
+    }
+
+    async function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const year = parseInt(document.getElementById("pdfYear").value);
+      const visits = JSON.parse(localStorage.getItem("visits") || "[]");
+      const key = sessionStorage.getItem("key");
+      if (!key) {
+        alert("Brak klucza szyfrowania");
+        return;
+      }
+
+      let taxYearTotal = 0;
+
+      function decryptData(cipher) {
+        try {
+          const bytes = CryptoJS.AES.decrypt(cipher, key);
+          return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        } catch {
+          return null;
+        }
+      }
+
+      const startOfTaxYear = new Date(`${year}-04-06`);
+      const endOfTaxYear = new Date(`${year + 1}-04-05`);
+
+      visits.forEach(c => {
+        const data = decryptData(c);
+        if (data && data.paid) {
+          const d = new Date(data.date);
+          const amt = parseFloat(data.amount);
+          if (d >= startOfTaxYear && d <= endOfTaxYear) {
+            taxYearTotal += amt;
+          }
+        }
+      });
+
+      doc.setFontSize(16);
+      doc.text("Podsumowanie roczne - Gorgeous Eyes", 20, 20);
+      doc.setFontSize(12);
+      doc.text(`Zakres: 6 kwietnia ${year} – 5 kwietnia ${year + 1}`, 20, 35);
+      doc.text(`Łączny dochód: £${taxYearTotal.toFixed(2)}`, 20, 50);
+
+      doc.save(`podsumowanie_${year}_do_${year + 1}.pdf`);
+    }
+
+    populateYearDropdown();
   </script>
 </body>
 </html>
