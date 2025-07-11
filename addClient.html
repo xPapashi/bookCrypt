@@ -1,349 +1,389 @@
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dodaj wizytę – Wizyty Klientów</title>
-  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #a26ff3, #f559a9);
-      margin: 0;
-      padding: 1rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dodaj wizytę – Wizyty Klientów</title>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(135deg, #a26ff3, #f559a9);
+        margin: 0;
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
 
-    .card {
-      background: white;
-      padding: 2rem;
-      border-radius: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 400px;
-    }
+      .card {
+        background: white;
+        padding: 2rem;
+        border-radius: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+      }
 
-    .card h1 {
-      text-align: center;
-      color: #a26ff3;
-      margin-bottom: 1.5rem;
-      font-size: 1.4rem;
-    }
+      .card h1 {
+        text-align: center;
+        color: #a26ff3;
+        margin-bottom: 1.5rem;
+        font-size: 1.4rem;
+      }
 
-    input, select {
-      width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ddd;
-      border-radius: 0.75rem;
-      font-size: 1rem;
-    }
+      input,
+      select {
+        width: 100%;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+      }
 
-    label {
-      display: flex;
-      margin-bottom: 1rem;
-      font-size: 0.95rem;
-    }
+      label {
+        display: flex;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+      }
 
-    button {
-      width: 100%;
-      padding: 0.75rem;
-      background-color: #a26ff3;
-      border: none;
-      border-radius: 0.75rem;
-      color: white;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-bottom: 1rem;
-      transition: background 0.3s;
-    }
+      button {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #a26ff3;
+        border: none;
+        border-radius: 0.75rem;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-bottom: 1rem;
+        transition: background 0.3s;
+      }
 
-    button:hover {
-      background-color: #7c4fe0;
-    }
+      button:hover {
+        background-color: #7c4fe0;
+      }
 
-    .tag-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      padding: 0.5rem;
-      border: 1px solid #3399ff;
-      border-radius: 0.75rem;
-      margin-bottom: 1rem;
-      background: white;
-    }
+      .tag-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border: 1px solid #3399ff;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        background: white;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
 
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
 
-    .tag {
-      color: white;
-      padding: 0.3rem 0.7rem;
-      border-radius: 999px;
-      display: flex;
-      align-items: center;
-      font-size: 0.85rem;
-    }
+      .tag {
+        color: white;
+        padding: 0.3rem 0.7rem;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        font-size: 0.85rem;
+      }
 
-    .tag span {
-      margin-left: 0.5rem;
-      cursor: pointer;
-      font-weight: bold;
-    }
+      .tag span {
+        margin-left: 0.5rem;
+        cursor: pointer;
+        font-weight: bold;
+      }
 
-    #tagSuggestions {
-      list-style: none;
-      padding-left: 0;
-      margin-top: -0.5rem;
-      margin-bottom: 1rem;
-    }
+      #tagForm {
+        display: flex;
+        width: 100%;
+      }
 
-    #tagSuggestions li {
-      background: #eef4ff;
-      padding: 0.4rem 0.75rem;
-      margin-bottom: 4px;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: background 0.2s;
-    }
+      #tagForm input[type="text"] {
+        width: 100%;
+        font-size: 1rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 0.5rem;
+        box-sizing: border-box;
+      }
 
-    #tagSuggestions li:hover {
-      background: #d6e3ff;
-    }
+      #tagSuggestions {
+        list-style: none;
+        padding-left: 0;
+        margin-top: -0.5rem;
+        margin-bottom: 1rem;
+      }
 
-    /* Slider toggle */
-    .toggle-paid {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-    }
+      #tagSuggestions li {
+        background: #eef4ff;
+        padding: 0.4rem 0.75rem;
+        margin-bottom: 4px;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+      }
 
-    .toggle-paid input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+      #tagSuggestions li:hover {
+        background: #d6e3ff;
+      }
 
-    .slider {
-      position: relative;
-      width: 44px;
-      height: 24px;
-      background-color: #ccc;
-      border-radius: 24px;
-      transition: background-color 0.4s;
-    }
+      /* Slider toggle */
+      .toggle-paid {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+      }
 
-    .slider:before {
-      content: "";
-      position: absolute;
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      border-radius: 50%;
-      transition: transform 0.4s;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
+      .toggle-paid input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
 
-    input:checked + .slider {
-      background-color: #a26ff3;
-    }
+      .slider {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        background-color: #ccc;
+        border-radius: 24px;
+        transition: background-color 0.4s;
+      }
 
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
+      .slider:before {
+        content: "";
+        position: absolute;
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        border-radius: 50%;
+        transition: transform 0.4s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
 
-    .toggle-paid-text {
-      font-size: 0.9rem;
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>Dodaj nową wizytę</h1>
+      input:checked + .slider {
+        background-color: #a26ff3;
+      }
 
-    <input type="datetime-local" id="date" required />
-    <input type="text" id="name" placeholder="Imię klienta" list="clientSuggestions" required />
-    <datalist id="clientSuggestions"></datalist>
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
 
-    <div class="tag-container">
-      <div id="selectedTags" class="tags"></div>
-      <input type="text" id="tagInput" placeholder="Dodaj tag i naciśnij Enter..." />
+      .toggle-paid-text {
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Dodaj nową wizytę</h1>
+
+      <input type="datetime-local" id="date" required />
+      <input
+        type="text"
+        id="name"
+        placeholder="Imię klienta"
+        list="clientSuggestions"
+        required
+      />
+      <datalist id="clientSuggestions"></datalist>
+
+      <div class="tag-container">
+        <div id="selectedTags" class="tags"></div>
+        <form
+          id="tagForm"
+          onsubmit="return handleTagSubmit(event)"
+          style="width: 100%"
+        >
+          <input
+            type="text"
+            id="tagInput"
+            placeholder="Dodaj tag i naciśnij Enter..."
+            autocomplete="off"
+          />
+          <button type="submit" style="display: none">Dodaj</button>
+        </form>
+      </div>
+      <ul id="tagSuggestions"></ul>
+      <input type="hidden" id="service" required />
+
+      <input type="number" id="amount" placeholder="Kwota (£)" required />
+      <select id="payment">
+        <option value="gotowka">Gotówka</option>
+        <option value="karta">Karta</option>
+      </select>
+
+      <!-- Slider zamiast checkboxa -->
+      <label class="toggle-paid" style="margin-bottom: 1rem">
+        <span class="toggle-paid-text">Zapłacono</span>
+        <input type="checkbox" id="paid" />
+        <span class="slider"></span>
+      </label>
+
+      <button onclick="saveVisit()">Zapisz wizytę</button>
+      <button onclick="location.href='index.html'">Wróć do panelu</button>
     </div>
-    <ul id="tagSuggestions"></ul>
-    <input type="hidden" id="service" required />
 
-    <input type="number" id="amount" placeholder="Kwota (£)" required />
-    <select id="payment">
-      <option value="gotowka">Gotówka</option>
-      <option value="karta">Karta</option>
-    </select>
+    <script>
+      const encryptionKey = sessionStorage.getItem("key");
+      if (!encryptionKey) location.href = "login.html";
 
-    <!-- Slider zamiast checkboxa -->
-    <label class="toggle-paid" style="margin-bottom: 1rem;">
-      <span class="toggle-paid-text">Zapłacono</span>
-      <input type="checkbox" id="paid">
-      <span class="slider"></span>
-    </label>
-
-    <button onclick="saveVisit()">Zapisz wizytę</button>
-    <button onclick="location.href='index.html'">Wróć do panelu</button>
-  </div>
-
-  <script>
-    const encryptionKey = sessionStorage.getItem("key");
-    if (!encryptionKey) location.href = "login.html";
-
-    function encryptData(data) {
-      return CryptoJS.AES.encrypt(JSON.stringify(data), encryptionKey).toString();
-    }
-
-    function decryptData(cipherText) {
-      try {
-        const bytes = CryptoJS.AES.decrypt(cipherText, encryptionKey);
-        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-      } catch {
-        return null;
+      function encryptData(data) {
+        return CryptoJS.AES.encrypt(
+          JSON.stringify(data),
+          encryptionKey
+        ).toString();
       }
-    }
 
-    function getUniqueClients() {
-      const visits = JSON.parse(localStorage.getItem("visits") || "[]");
-      const names = new Set();
-      visits.forEach(cipher => {
-        const data = decryptData(cipher);
-        if (data && data.name) names.add(data.name.trim());
-      });
-      return Array.from(names);
-    }
-
-    function populateClientSuggestions() {
-      const datalist = document.getElementById("clientSuggestions");
-      const names = getUniqueClients();
-      datalist.innerHTML = "";
-      names.forEach(name => {
-        const option = document.createElement("option");
-        option.value = name;
-        datalist.appendChild(option);
-      });
-    }
-
-    let selectedTagList = [];
-
-    function renderSelectedTags() {
-      const tagContainer = document.getElementById("selectedTags");
-      tagContainer.innerHTML = "";
-
-      const stored = localStorage.getItem("tags");
-      const tagDefs = stored ? JSON.parse(stored) : [];
-
-      selectedTagList.forEach((tag, i) => {
-        const tagEl = document.createElement("div");
-        tagEl.className = "tag";
-        const tagDef = tagDefs.find(t => t.label === tag);
-        tagEl.style.backgroundColor = tagDef?.color || "#3399ff";
-        tagEl.innerHTML = `${tag}<span onclick="removeTag(${i})">&times;</span>`;
-        tagContainer.appendChild(tagEl);
-      });
-
-      document.getElementById("service").value = selectedTagList.join(", ");
-    }
-
-    function removeTag(index) {
-      selectedTagList.splice(index, 1);
-      renderSelectedTags();
-    }
-
-    function addTag(tag) {
-      tag = tag.trim();
-      if (tag && !selectedTagList.includes(tag)) {
-        selectedTagList.push(tag);
-        renderSelectedTags();
+      function decryptData(cipherText) {
+        try {
+          const bytes = CryptoJS.AES.decrypt(cipherText, encryptionKey);
+          return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        } catch {
+          return null;
+        }
       }
-    }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      populateClientSuggestions();
-      const input = document.getElementById("tagInput");
-      const suggestions = document.getElementById("tagSuggestions");
+      function getUniqueClients() {
+        const visits = JSON.parse(localStorage.getItem("visits") || "[]");
+        const names = new Set();
+        visits.forEach((cipher) => {
+          const data = decryptData(cipher);
+          if (data && data.name) names.add(data.name.trim());
+        });
+        return Array.from(names);
+      }
 
-      input.addEventListener("input", () => {
-        const query = input.value.trim().toLowerCase();
-        suggestions.innerHTML = "";
-        if (!query) return;
+      function populateClientSuggestions() {
+        const datalist = document.getElementById("clientSuggestions");
+        const names = getUniqueClients();
+        datalist.innerHTML = "";
+        names.forEach((name) => {
+          const option = document.createElement("option");
+          option.value = name;
+          datalist.appendChild(option);
+        });
+      }
+
+      let selectedTagList = [];
+
+      function renderSelectedTags() {
+        const tagContainer = document.getElementById("selectedTags");
+        tagContainer.innerHTML = "";
 
         const stored = localStorage.getItem("tags");
-        if (!stored) return;
+        const tagDefs = stored ? JSON.parse(stored) : [];
 
-        const tags = JSON.parse(stored);
-        const matches = tags.filter(tag =>
-          tag.label.toLowerCase().includes(query) && !selectedTagList.includes(tag.label)
-        );
+        selectedTagList.forEach((tag, i) => {
+          const tagEl = document.createElement("div");
+          tagEl.className = "tag";
+          const tagDef = tagDefs.find((t) => t.label === tag);
+          tagEl.style.backgroundColor = tagDef?.color || "#3399ff";
+          tagEl.innerHTML = `${tag}<span onclick="removeTag(${i})">&times;</span>`;
+          tagContainer.appendChild(tagEl);
+        });
 
-        matches.forEach(tag => {
-          const li = document.createElement("li");
-          li.textContent = tag.label;
-          li.onclick = () => {
-            addTag(tag.label);
-            input.value = "";
-            suggestions.innerHTML = "";
-          };
-          suggestions.appendChild(li);
+        document.getElementById("service").value = selectedTagList.join(", ");
+      }
+
+      function removeTag(index) {
+        selectedTagList.splice(index, 1);
+        renderSelectedTags();
+      }
+
+      function addTag(tag) {
+        tag = tag.trim();
+        if (tag && !selectedTagList.includes(tag)) {
+          selectedTagList.push(tag);
+          renderSelectedTags();
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        populateClientSuggestions();
+        const input = document.getElementById("tagInput");
+        const suggestions = document.getElementById("tagSuggestions");
+
+        input.addEventListener("input", () => {
+          const query = input.value.trim().toLowerCase();
+          suggestions.innerHTML = "";
+          if (!query) return;
+
+          const stored = localStorage.getItem("tags");
+          if (!stored) return;
+
+          const tags = JSON.parse(stored);
+          const matches = tags.filter(
+            (tag) =>
+              tag.label.toLowerCase().includes(query) &&
+              !selectedTagList.includes(tag.label)
+          );
+
+          matches.forEach((tag) => {
+            const li = document.createElement("li");
+            li.textContent = tag.label;
+            li.onclick = () => {
+              addTag(tag.label);
+              input.value = "";
+              suggestions.innerHTML = "";
+            };
+            suggestions.appendChild(li);
+          });
+        });
+
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (input.value.trim()) {
+              addTag(input.value);
+              input.value = "";
+              suggestions.innerHTML = "";
+            }
+          }
         });
       });
 
-      input.addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          if (input.value.trim()) {
-            addTag(input.value);
-            input.value = "";
-            suggestions.innerHTML = "";
-          }
+      function saveVisit() {
+        const visit = {
+          date: document.getElementById("date").value,
+          name: document.getElementById("name").value.trim(),
+          service: document.getElementById("service").value,
+          amount: document.getElementById("amount").value,
+          payment: document.getElementById("payment").value,
+          paid: document.getElementById("paid").checked,
+        };
+
+        if (!visit.date || !visit.name || !visit.service || !visit.amount) {
+          alert("Uzupełnij wszystkie pola!");
+          return;
         }
-      });
-    });
 
-    function saveVisit() {
-      const visit = {
-        date: document.getElementById("date").value,
-        name: document.getElementById("name").value.trim(),
-        service: document.getElementById("service").value,
-        amount: document.getElementById("amount").value,
-        payment: document.getElementById("payment").value,
-        paid: document.getElementById("paid").checked
-      };
+        let visits = JSON.parse(localStorage.getItem("visits") || "[]");
+        visits.push(encryptData(visit));
+        localStorage.setItem("visits", JSON.stringify(visits));
 
-      if (!visit.date || !visit.name || !visit.service || !visit.amount) {
-        alert("Uzupełnij wszystkie pola!");
-        return;
+        document.getElementById("date").value = "";
+        document.getElementById("name").value = "";
+        document.getElementById("tagInput").value = "";
+        document.getElementById("amount").value = "";
+        document.getElementById("payment").value = "gotowka";
+        document.getElementById("paid").checked = false;
+        selectedTagList = [];
+        renderSelectedTags();
+
+        alert("Wizyta zapisana!");
+        location.href = "index.html";
       }
-
-      let visits = JSON.parse(localStorage.getItem("visits") || "[]");
-      visits.push(encryptData(visit));
-      localStorage.setItem("visits", JSON.stringify(visits));
-
-      document.getElementById("date").value = "";
-      document.getElementById("name").value = "";
-      document.getElementById("tagInput").value = "";
-      document.getElementById("amount").value = "";
-      document.getElementById("payment").value = "gotowka";
-      document.getElementById("paid").checked = false;
-      selectedTagList = [];
-      renderSelectedTags();
-
-      alert("Wizyta zapisana!");
-      location.href = "index.html";
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>
