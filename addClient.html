@@ -49,21 +49,38 @@
         font-size: 0.95rem;
       }
 
-      button {
+      .primary-btn {
         width: 100%;
         padding: 0.75rem;
-        background-color: #a26ff3;
+        background-color: #5e5edd;
         border: none;
         border-radius: 0.75rem;
         color: white;
         font-size: 1rem;
+        font-weight: bold;
         cursor: pointer;
         margin-bottom: 1rem;
         transition: background 0.3s;
       }
 
-      button:hover {
-        background-color: #7c4fe0;
+      .primary-btn:hover {
+        background-color: #4e4ed9;
+      }
+
+      .secondary-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: transparent;
+        color: #5e5edd;
+        border: 2px solid #5e5edd;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .secondary-btn:hover {
+        background-color: #eef0ff;
       }
 
       .tag-container {
@@ -100,20 +117,6 @@
         font-weight: bold;
       }
 
-      #tagForm {
-        display: flex;
-        width: 100%;
-      }
-
-      #tagForm input[type="text"] {
-        width: 100%;
-        font-size: 1rem;
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #ccc;
-        border-radius: 0.5rem;
-        box-sizing: border-box;
-      }
-
       #tagSuggestions {
         list-style: none;
         padding-left: 0;
@@ -135,7 +138,20 @@
         background: #d6e3ff;
       }
 
-      /* Slider toggle */
+      #tagForm {
+        display: flex;
+        width: 100%;
+      }
+
+      #tagForm input[type="text"] {
+        width: 100%;
+        font-size: 1rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 0.5rem;
+        box-sizing: border-box;
+      }
+
       .toggle-paid {
         display: flex;
         align-items: center;
@@ -200,11 +216,7 @@
 
       <div class="tag-container">
         <div id="selectedTags" class="tags"></div>
-        <form
-          id="tagForm"
-          onsubmit="return handleTagSubmit(event)"
-          style="width: 100%"
-        >
+        <form id="tagForm" onsubmit="return handleTagSubmit(event)">
           <input
             type="text"
             id="tagInput"
@@ -223,15 +235,18 @@
         <option value="karta">Karta</option>
       </select>
 
-      <!-- Slider zamiast checkboxa -->
-      <label class="toggle-paid" style="margin-bottom: 1rem">
+      <label class="toggle-paid">
         <span class="toggle-paid-text">Zapłacono</span>
         <input type="checkbox" id="paid" />
         <span class="slider"></span>
       </label>
 
-      <button onclick="saveVisit()">Zapisz wizytę</button>
-      <button onclick="location.href='index.html'">Wróć do panelu</button>
+      <button class="primary-btn" onclick="saveVisit()">
+        💾 Zapisz wizytę
+      </button>
+      <button class="secondary-btn" onclick="location.href='index.html'">
+        ← Wróć do panelu
+      </button>
     </div>
 
     <script>
@@ -309,6 +324,18 @@
         }
       }
 
+      function handleTagSubmit(event) {
+        event.preventDefault();
+        const input = document.getElementById("tagInput");
+        const tag = input.value.trim();
+        if (tag) {
+          addTag(tag);
+          input.value = "";
+          document.getElementById("tagSuggestions").innerHTML = "";
+        }
+        return false;
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         populateClientSuggestions();
         const input = document.getElementById("tagInput");
@@ -339,17 +366,6 @@
             };
             suggestions.appendChild(li);
           });
-        });
-
-        input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            if (input.value.trim()) {
-              addTag(input.value);
-              input.value = "";
-              suggestions.innerHTML = "";
-            }
-          }
         });
       });
 
