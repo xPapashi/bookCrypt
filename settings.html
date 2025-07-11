@@ -12,6 +12,7 @@
       font-family: 'Segoe UI', sans-serif;
       padding: 2rem;
       background: #f9fbff;
+      padding-bottom: 100px; /* Prevents overlap with back button */
     }
     h1 {
       text-align: center;
@@ -41,16 +42,7 @@
       border-radius: 10px;
       border: 1px solid #ccc;
     }
-    .back {
-      text-align: center;
-      margin-top: 3rem;
-    }
-    .back a {
-      text-decoration: none;
-      color: #5e5edd;
-    }
 
-    /* NOWOCZESNE STYLE TAGÓW */
     .tag-card {
       display: flex;
       align-items: center;
@@ -127,6 +119,34 @@
     #tagForm button:hover {
       background-color: #4e4ed9;
     }
+
+    .floating-back-btn {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 2rem);
+      max-width: 500px;
+      z-index: 999;
+    }
+
+    .floating-back-btn button {
+      width: 100%;
+      background: #5e5edd;
+      color: white;
+      padding: 0.9rem;
+      border: none;
+      border-radius: 15px;
+      font-size: 1rem;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .floating-back-btn button:hover {
+      background: #4e4ed9;
+    }
   </style>
 </head>
 <body>
@@ -150,8 +170,8 @@
     <button onclick="addNewTag()">➕ Dodaj</button>
   </div>
 
-  <div class="back">
-    <a href="index.html">← Powrót do panelu</a>
+  <div class="floating-back-btn">
+    <button onclick="location.href='index.html'">← Wróć</button>
   </div>
 
   <script>
@@ -160,7 +180,8 @@
 
     function exportDatabase() {
       const data = {
-        visits: localStorage.getItem("visits")
+        visits: localStorage.getItem("visits"),
+        tags: localStorage.getItem("tags")
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -180,10 +201,12 @@
           const importedData = JSON.parse(e.target.result);
           if (importedData.visits) {
             localStorage.setItem("visits", importedData.visits);
-            alert("Import zakończony sukcesem!");
-          } else {
-            alert("Nieprawidłowy format pliku.");
           }
+          if (importedData.tags) {
+            localStorage.setItem("tags", importedData.tags);
+          }
+          alert("Import zakończony sukcesem!");
+          renderTagsSettings();
         } catch (err) {
           alert("Błąd podczas importu: " + err.message);
         }
@@ -284,6 +307,13 @@
     document.addEventListener("DOMContentLoaded", () => {
       populateYearDropdown();
       renderTagsSettings();
+
+      // Ensure tag input scrolls into view on focus
+      document.getElementById("newTagLabel").addEventListener("focus", () => {
+        setTimeout(() => {
+          document.getElementById("newTagLabel").scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 200);
+      });
     });
   </script>
 </body>

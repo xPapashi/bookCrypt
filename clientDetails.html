@@ -236,7 +236,9 @@
         const decrypted = allVisits.map(decryptData);
         const visits = decrypted
           .map((v, i) => ({ ...v, index: i }))
-          .filter((v) => v.name === name);
+          .filter((v) => v.name === name)
+          .sort((a, b) => new Date(b.date) - new Date(a.date));
+          
 
         const container = document.getElementById("visitsContainer");
         container.innerHTML = "";
