@@ -92,5 +92,30 @@
     });
   }
 
-  window.DB = { openDB, addBackup, listBackupsDesc, countBackups, deleteOldest };
+  // NEW: delete specific backup by id
+  async function deleteById(id) {
+    if (id == null) return 0;
+    return tx('backups', 'readwrite', (store) => store.delete(id)).then(() => 1);
+  }
+
+  // NEW: delete many by ids
+  async function deleteByIds(ids = []) {
+    if (!Array.isArray(ids) || !ids.length) return 0;
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const t = db.transaction('backups', 'readwrite');
+      const store = t.objectStore('backups');
+      let removed = 0;
+      ids.forEach((id) => {
+        try {
+          store.delete(id);
+          removed++;
+        } catch {}
+      });
+      t.oncomplete = () => resolve(removed);
+      t.onerror = () => reject(t.error);
+    });
+  }
+
+  window.DB = { openDB, addBackup, listBackupsDesc, countBackups, deleteOldest, deleteById, deleteByIds };
 })();

@@ -13,7 +13,6 @@
   }
 
   async function saveRollingBackup() {
-    // We back up the raw ciphertexts so the passphrase is NOT needed for restore
     const visitsRaw = localStorage.getItem('visits');
     const visits = safeParse(visitsRaw);
 
@@ -45,5 +44,13 @@
     return DB.listBackupsDesc(limit);
   }
 
-  window.Backup = { saveRollingBackup, listBackups };
+  // NEW: delete helpers
+  async function deleteBackup(id) {
+    return DB.deleteById(id);
+  }
+  async function deleteBackups(ids = []) {
+    return DB.deleteByIds(ids);
+  }
+
+  window.Backup = { saveRollingBackup, listBackups, deleteBackup, deleteBackups };
 })();

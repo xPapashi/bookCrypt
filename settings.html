@@ -14,6 +14,7 @@
     <script src="js/backup.js"></script>
     <script src="js/restore.js"></script>
     <style>
+      /* Base */
       body {
         font-family: "Segoe UI", sans-serif;
         padding: 2rem;
@@ -42,6 +43,7 @@
       .btn:hover {
         background-color: #4e4ed9;
       }
+
       select,
       input[type="text"],
       input[type="color"] {
@@ -51,6 +53,7 @@
         border: 1px solid #ccc;
       }
 
+      /* Tag cards (existing design retained) */
       .tag-card {
         display: flex;
         align-items: center;
@@ -63,7 +66,6 @@
         gap: 0.5rem;
         flex-wrap: wrap;
       }
-
       .tag-card input[type="text"] {
         flex: 2;
         border: none;
@@ -71,14 +73,12 @@
         font-size: 1rem;
         font-weight: 500;
       }
-
       .tag-card input[type="color"] {
         width: 40px;
         height: 40px;
         border: none;
         border-radius: 8px;
       }
-
       .tag-card button {
         background: none;
         border: none;
@@ -86,7 +86,6 @@
         cursor: pointer;
         transition: transform 0.2s ease;
       }
-
       .tag-card button:hover {
         transform: scale(1.2);
       }
@@ -98,21 +97,18 @@
         margin-top: 1.5rem;
         justify-content: center;
       }
-
       #tagForm input[type="text"] {
         flex: 2;
         padding: 0.75rem;
         border-radius: 10px;
         border: 1px solid #ddd;
       }
-
       #tagForm input[type="color"] {
         flex: 1;
         height: 48px;
         border: none;
         border-radius: 10px;
       }
-
       #tagForm button {
         flex: 1;
         background-color: #5e5edd;
@@ -123,11 +119,11 @@
         cursor: pointer;
         transition: background 0.3s ease;
       }
-
       #tagForm button:hover {
         background-color: #4e4ed9;
       }
 
+      /* Back button */
       .floating-back-btn {
         position: fixed;
         bottom: 1rem;
@@ -137,7 +133,6 @@
         max-width: 500px;
         z-index: 999;
       }
-
       .floating-back-btn button {
         width: 100%;
         background: #5e5edd;
@@ -151,45 +146,44 @@
         cursor: pointer;
         transition: background 0.3s ease;
       }
-
       .floating-back-btn button:hover {
         background: #4e4ed9;
       }
 
-      /* ===== Backups panel styling (scoped to #backupPanel) ===== */
+      /* ===== Backups panel: MOBILE-FIRST card list ===== */
       #backupPanel {
         max-width: 900px;
         margin: 0 auto;
       }
-
-      /* Wrap whatever the JS renders into a card look */
-      #backupPanel .backup-card,
-      #backupPanel > .card,
-      #backupPanel > div:not(:has(table)):not(:has(.backup-toolbar)) {
+      #backupPanel .backup-card {
         background: #fff;
         border-radius: 12px;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
         padding: 1rem;
         margin: 1rem 0;
       }
+      #backupPanel h3 {
+        margin: 0 0 0.75rem 0;
+        color: #4e4ed9;
+        text-align: center;
+      }
+      #backupPanel .muted {
+        color: #6b7280;
+        font-size: 0.95rem;
+      }
 
-      /* Toolbar (create/restore actions) */
+      /* Toolbars */
       #backupPanel .backup-toolbar {
         display: flex;
         gap: 0.5rem;
         flex-wrap: wrap;
         justify-content: center;
-        margin: 1rem 0;
+        margin: 0.75rem 0;
       }
-
-      #backupPanel .backup-toolbar .btn,
-      #backupPanel button.primary {
-        /* make any primary buttons look like your .btn but smaller */
+      #backupPanel .backup-toolbar .primary {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        margin: 0;
-        max-width: none;
         padding: 0.75rem 1rem;
         border-radius: 12px;
         background: #5e5edd;
@@ -199,37 +193,28 @@
         transition: background 0.3s ease, transform 0.05s ease;
         font-size: 0.95rem;
       }
-      #backupPanel .backup-toolbar .btn:hover,
-      #backupPanel button.primary:hover {
+      #backupPanel .backup-toolbar .primary:hover {
         background: #4e4ed9;
       }
 
-      /* Icon buttons inside table rows */
       #backupPanel .icon-btn,
-      #backupPanel table button,
       #backupPanel .action-btn {
         background: #f3f4ff;
         color: #3636b3;
         border: 1px solid #e3e6ff;
         border-radius: 10px;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.9rem;
+        padding: 0.6rem 0.85rem;
+        font-size: 0.95rem;
         cursor: pointer;
         transition: background 0.2s ease, transform 0.05s ease, border 0.2s ease;
       }
-      #backupPanel .icon-btn:hover,
-      #backupPanel table button:hover,
-      #backupPanel .action-btn:hover {
+      #backupPanel .icon-btn:hover {
         background: #e9ebff;
         border-color: #cfd5ff;
       }
-      #backupPanel .icon-btn:active,
-      #backupPanel table button:active,
-      #backupPanel .action-btn:active {
+      #backupPanel .icon-btn:active {
         transform: translateY(1px);
       }
-
-      /* Destructive buttons */
       #backupPanel .danger {
         background: #fff3f3;
         color: #b64949;
@@ -240,32 +225,40 @@
         border-color: #ffc9c9;
       }
 
-      /* Table */
-      #backupPanel .table-wrap {
-        overflow-x: auto;
+      /* Card list layout */
+      #backupPanel .backup-list {
+        display: grid;
+        gap: 0.75rem;
       }
-      #backupPanel table {
-        width: 100%;
-        border-collapse: collapse;
+      #backupPanel .backup-item {
         background: #fff;
+        border: 1px solid #eef1ff;
         border-radius: 12px;
-        overflow: hidden;
+        padding: 0.85rem 0.9rem;
+        display: grid;
+        grid-template-columns: 28px 1fr;
+        column-gap: 0.75rem;
+        row-gap: 0.4rem;
+        align-items: center;
       }
-      #backupPanel thead th {
-        background: #f3f5ff;
-        color: #3b3bd6;
-        text-align: left;
+      #backupPanel .backup-item .check {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #backupPanel .backup-item input[type="checkbox"] {
+        width: 22px;
+        height: 22px;
+      }
+      #backupPanel .backup-item .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.75rem;
+        align-items: center;
+        justify-content: space-between;
+      }
+      #backupPanel .backup-item .date {
         font-weight: 600;
-        padding: 0.9rem 1rem;
-        border-bottom: 1px solid #ecefff;
-      }
-      #backupPanel tbody td {
-        padding: 0.85rem 1rem;
-        border-bottom: 1px solid #f2f4ff;
-        vertical-align: middle;
-      }
-      #backupPanel tbody tr:hover {
-        background: #fafbff;
       }
       #backupPanel .pill {
         display: inline-block;
@@ -276,54 +269,83 @@
         font-size: 0.85rem;
         font-weight: 600;
       }
-
-      /* Small helper text */
-      #backupPanel .muted {
-        color: #6b7280;
-        font-size: 0.9rem;
-      }
-
-      /* Align action buttons in a row */
-      #backupPanel .row-actions {
+      #backupPanel .backup-item .actions {
+        grid-column: 1 / -1;
         display: flex;
-        gap: 0.4rem;
+        gap: 0.45rem;
         flex-wrap: wrap;
+        margin-top: 0.25rem;
       }
 
-      /* Headings inside backups card */
-      #backupPanel h3 {
-        margin: 0 0 0.75rem 0;
-        color: #4e4ed9;
-        text-align: center;
+      /* Wider screens: tighten layout */
+      @media (min-width: 720px) {
+        #backupPanel .backup-item {
+          grid-template-columns: 36px 2fr 1fr auto;
+        }
+        #backupPanel .backup-item .actions {
+          grid-column: auto;
+          justify-content: flex-end;
+        }
       }
 
-      /* Make any inputs inside backups match the form language */
-      #backupPanel input[type="text"],
-      #backupPanel input[type="file"],
-      #backupPanel select {
-        font-size: 1rem;
-        padding: 0.6rem 0.75rem;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-        background: #fff;
+      /* Collapsible list container with soft fade, mobile-first */
+      #backupPanel .collapsible {
+        position: relative;
+        max-height: min(60vh, 520px); /* capped to viewport for phones */
+        overflow: auto; /* <-- was hidden */
+        -webkit-overflow-scrolling: touch; /* smooth iOS scrolling */
+        overscroll-behavior: contain; /* prevent page bounce while scrolling the list */
+      }
+
+      /* When expanded, let the page handle scrolling normally */
+      #backupPanel .collapsible.expanded {
+        max-height: none;
+        overflow: visible;
+      }
+
+      /* Keep the fade overlay non-interactive so it doesn't block scrolling */
+      #backupPanel .fade-out {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 56px;
+        pointer-events: none; /* ensures touches reach the list */
+        display: block;
+      }
+      #backupPanel .collapsible.expanded .fade-out {
+        display: none;
+      }
+
+      /* “Pokaż więcej / Zwiń” control bar */
+      #backupPanel .more-bar {
+        display: flex;
+        justify-content: center;
+        margin-top: 0.5rem;
+      }
+      #backupPanel .more-btn {
+        background: #f3f4ff;
+        color: #3636b3;
+        border: 1px solid #e3e6ff;
+        border-radius: 12px;
+        padding: 0.7rem 1rem;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: background 0.2s ease, border 0.2s ease, transform 0.05s ease;
+      }
+      #backupPanel .more-btn:hover {
+        background: #e9ebff;
+        border-color: #cfd5ff;
+      }
+      #backupPanel .more-btn:active {
+        transform: translateY(1px);
       }
     </style>
   </head>
   <body>
     <h1>⚙️ Ustawienia</h1>
-    <button class="btn" onclick="exportDatabase()">
-      📤 Eksportuj bazę danych
-    </button>
-    <input
-      type="file"
-      id="importFile"
-      accept=".json"
-      style="display: none"
-      onchange="importDatabase(event)"
-    />
-    <button class="btn" onclick="document.getElementById('importFile').click()">
-      📥 Importuj bazę danych
-    </button>
+
+    <!-- Old top Import/Export removed as requested -->
 
     <h2 style="text-align: center; margin-top: 3rem">
       📄 Podsumowanie roczne (PDF)
@@ -347,11 +369,10 @@
     <!-- Backups -->
     <h2 style="text-align: center; margin-top: 3rem">💾 Kopie zapasowe</h2>
     <section style="max-width: 900px; margin: 16px auto">
-      <!-- Optional helper text card to keep the visual rhythm -->
-      <div class="backup-card muted">
-        Zarządzaj kopiami zapasowymi: pobieraj, przywracaj lub usuwaj wybrane pozycje.
+      <div class="backup-card muted" style="text-align: center">
+        Zarządzaj kopiami zapasowymi: pobieraj, przywracaj, usuwaj (pojedynczo
+        lub wiele naraz).
       </div>
-      <!-- JS will render the interactive table & controls here -->
       <div id="backupPanel"></div>
     </section>
 
@@ -364,6 +385,7 @@
       if (!encryptionKey) location.href = "login.html";
 
       function exportDatabase() {
+        /* deprecated in UI, kept for compatibility if referenced elsewhere */
         const data = {
           visits: localStorage.getItem("visits"),
           tags: localStorage.getItem("tags"),
@@ -382,25 +404,7 @@
       }
 
       function importDatabase(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          try {
-            const importedData = JSON.parse(e.target.result);
-            if (importedData.visits) {
-              localStorage.setItem("visits", importedData.visits);
-            }
-            if (importedData.tags) {
-              localStorage.setItem("tags", importedData.tags);
-            }
-            alert("Import zakończony sukcesem!");
-            renderTagsSettings();
-          } catch (err) {
-            alert("Błąd podczas importu: " + err.message);
-          }
-        };
-        reader.readAsText(file);
+        /* deprecated path — import is handled in backups area */
       }
 
       function populateYearDropdown() {
@@ -484,19 +488,8 @@
         });
       }
 
-      function addNewTag() {
-        const label = document.getElementById("newTagLabel").value.trim();
-        const color = document.getElementById("newTagColor").value;
-        if (!label) return alert("Wprowadź nazwę tagu!");
-        const tags = JSON.parse(localStorage.getItem("tags") || "[]");
-        tags.push({ label, color });
-        localStorage.setItem("tags", JSON.stringify(tags));
-        document.getElementById("newTagLabel").value = "";
-        renderTagsSettings();
-      }
-
       document.addEventListener("DOMContentLoaded", function () {
-        // Mount the Restore/Download backups panel
+        // Mount the (mobile-first, collapsible) backups UI
         RestoreUI.renderBackupTable("backupPanel");
       });
 
@@ -504,14 +497,15 @@
         populateYearDropdown();
         renderTagsSettings();
 
-        // Ensure tag input scrolls into view on focus
-        document.getElementById("newTagLabel").addEventListener("focus", () => {
-          setTimeout(() => {
-            document
-              .getElementById("newTagLabel")
-              .scrollIntoView({ behavior: "smooth", block: "center" });
-          }, 200);
-        });
+        document
+          .getElementById("newTagLabel")
+          ?.addEventListener("focus", () => {
+            setTimeout(() => {
+              document
+                .getElementById("newTagLabel")
+                .scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 200);
+          });
       });
     </script>
   </body>
