@@ -1,10 +1,14 @@
-<!DOCTYPE html>
-<html lang="pl">
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Logowanie – Wizyty Klientów</title>
-  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>bookCrypt — Login</title>
+
+  <!-- Backup infrastructure (kept exactly as you had it) -->
+  <script src="js/db.js"></script>
+  <script src="js/backup.js"></script>
+
   <style>
     :root {
       --primary-color: #a26ff3;
@@ -70,20 +74,50 @@
 <body>
   <div class="login-card">
     <h1>Panel właściciela</h1>
-    <input type="password" id="password" placeholder="Hasło" />
-    <button onclick="login()">Zaloguj</button>
+    <form id="loginForm" novalidate>
+        <input id="key" type="password" placeholder="••••••••" required />
+      <button type="submit">Login</button>
+    </form>
+
   </div>
 
   <script>
-    function login() {
-      const key = document.getElementById("password").value.trim();
+    async function handleLogin(evt) {
+      evt.preventDefault();
+      const keyInput = document.getElementById('key');
+      const err = document.getElementById('key-error');
+      const key = (keyInput?.value || '').trim();
+
       if (!key) {
-        alert("Hasło nie może być puste!");
+        if (err) err.style.display = 'block';
+        alert('Please enter your encryption key.');
         return;
       }
-      sessionStorage.setItem("key", key);
-      location.href = "index.html";
+      if (err) err.style.display = 'none';
+
+      // Store key for this session (existing logic)
+      sessionStorage.setItem('key', key);
+
+      // Snapshot encrypted DB to IndexedDB (rolling backups)
+      try {
+        await Backup.saveRollingBackup();
+      } catch (e) {
+        console.warn('Backup on login failed:', e);
+        // Proceed anyway
+      }
+
+      // Redirect as before
+      window.location.href = 'index.html';
     }
+
+    // Attach handler to form submit
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+
+    // Hide inline error once user starts typing
+    document.getElementById('key').addEventListener('input', function () {
+      const err = document.getElementById('key-error');
+      if (err) err.style.display = 'none';
+    });
   </script>
 </body>
 </html>
